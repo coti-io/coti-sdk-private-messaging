@@ -1,0 +1,62 @@
+{
+  "name": "@coti-io/coti-sdk-private-messaging",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "description": "TypeScript SDK for COTI private messaging, encrypted message access, rewards, and MCP tooling.",
+  "author": "COTI Development",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/coti-io/coti-sdk-private-messaging.git"
+  },
+  "bugs": {
+    "url": "https://github.com/coti-io/coti-sdk-private-messaging/issues"
+  },
+  "homepage": "https://github.com/coti-io/coti-sdk-private-messaging#readme",
+  "keywords": [
+    "coti",
+    "privacy",
+    "private-messaging",
+    "blockchain",
+    "web3",
+    "mcp",
+    "sdk"
+  ],
+  "bin": {
+    "coti-sdk-private-messaging-mcp": "./dist/server.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./server": {
+      "import": "./dist/server.js"
+    }
+  },
+  "scripts": {
+    "prepare": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json",
+    "lint": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json",
+    "sync:abi": "node ./scripts/sync-abi.mjs",
+    "start:mcp": "node ./dist/server.js",
+    "test": "npm run build && tsc -p tsconfig.test.json && node --test dist-test/test/*.test.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@coti-io/coti-ethers": "^1.0.5",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "dotenv": "^16.6.1",
+    "zod": "^4.3.6"
+  }
+}
