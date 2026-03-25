@@ -1,5 +1,13 @@
 export { PRIVATE_MESSAGING_ABI } from "./abi.js";
 export {
+  COTI_RPC_URLS,
+  PRIVATE_MESSAGING_CONTRACT_ADDRESSES,
+  getDefaultCotiRpcUrl,
+  getDefaultPrivateMessagingContractAddress,
+  normalizePrivateMessagingNetwork
+} from "./constants.js";
+export type { PrivateMessagingNetwork } from "./constants.js";
+export {
   PrivateMessagingClient,
   createPrivateMessagingClient
 } from "./client.js";

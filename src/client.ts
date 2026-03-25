@@ -1,6 +1,7 @@
 import { Contract } from "@coti-io/coti-ethers";
 
 import { PRIVATE_MESSAGING_ABI } from "./abi.js";
+import { getDefaultPrivateMessagingContractAddress } from "./constants.js";
 import type { PrivateMessagingClientConfig } from "./types.js";
 
 export class PrivateMessagingClient {
@@ -9,7 +10,10 @@ export class PrivateMessagingClient {
   readonly contract: any;
 
   constructor(config: PrivateMessagingClientConfig) {
-    this.contractAddress = config.contractAddress;
+    const contractAddress =
+      config.contractAddress ?? getDefaultPrivateMessagingContractAddress(config.network);
+
+    this.contractAddress = contractAddress;
     this.runner = config.runner;
 
     if (config.aesKey && typeof this.runner?.setAesKey === "function") {
@@ -17,7 +21,7 @@ export class PrivateMessagingClient {
     }
 
     this.contract = new Contract(
-      config.contractAddress,
+      contractAddress,
       PRIVATE_MESSAGING_ABI,
       this.runner
     );

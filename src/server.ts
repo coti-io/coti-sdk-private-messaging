@@ -3,14 +3,17 @@ import "dotenv/config";
 import {
   CotiNetwork,
   JsonRpcProvider,
-  Wallet,
-  getDefaultProvider
+  Wallet
 } from "@coti-io/coti-ethers";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
 import { createPrivateMessagingClient } from "./client.js";
+import {
+  getDefaultCotiRpcUrl,
+  getDefaultPrivateMessagingContractAddress
+} from "./constants.js";
 import { invokePrivateMessagingTool } from "./mcp.js";
 import { PRIVATE_MESSAGING_MCP_TOOLS } from "./mcp.js";
 import type { StarterGrantServiceConfig } from "./types.js";
@@ -35,16 +38,23 @@ function resolveNetwork(): CotiNetwork {
 }
 
 function resolveRpcUrl(): string | undefined {
-  if (process.env.COTI_RPC_URL) {
-    return process.env.COTI_RPC_URL;
+  if (process.env.COTI_RPC_URL_OVERRIDE) {
+    return process.env.COTI_RPC_URL_OVERRIDE;
   }
 
   const network = resolveNetwork();
   if (network === CotiNetwork.Mainnet) {
-    return process.env.COTI_MAINNET_RPC_URL;
+    return process.env.COTI_MAINNET_RPC_URL_OVERRIDE ?? getDefaultCotiRpcUrl(network);
   }
 
-  return process.env.COTI_TESTNET_RPC_URL;
+  return process.env.COTI_TESTNET_RPC_URL_OVERRIDE ?? getDefaultCotiRpcUrl(network);
+}
+
+function resolveContractAddress(network: CotiNetwork): string {
+  return (
+    process.env.PRIVATE_MESSAGING_CONTRACT_ADDRESS_OVERRIDE ??
+    getDefaultPrivateMessagingContractAddress(network)
+  );
 }
 
 function parseNumber(value: string | undefined, fallback: number): number {
@@ -73,12 +83,13 @@ function resolveStarterGrantServiceConfig(): StarterGrantServiceConfig | undefin
 function buildClient() {
   const network = resolveNetwork();
   const rpcUrl = resolveRpcUrl();
-  const provider = rpcUrl ? new JsonRpcProvider(rpcUrl) : getDefaultProvider(network);
+  const provider = new JsonRpcProvider(rpcUrl);
   const wallet = new Wallet(getRequiredEnv("PRIVATE_KEY"), provider);
   wallet.setAesKey(getRequiredEnv("AES_KEY"));
 
   return createPrivateMessagingClient({
-    contractAddress: getRequiredEnv("CONTRACT_ADDRESS"),
+    contractAddress: resolveContractAddress(network),
+    network,
     runner: wallet
   });
 }

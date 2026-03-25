@@ -22,20 +22,21 @@ npm install @coti-io/coti-sdk-private-messaging @coti-io/coti-ethers
 ```
 
 ```ts
-import { Wallet, getDefaultProvider, CotiNetwork } from "@coti-io/coti-ethers";
+import { Wallet, JsonRpcProvider, CotiNetwork } from "@coti-io/coti-ethers";
 import {
+  getDefaultCotiRpcUrl,
   createPrivateMessagingClient,
   sendMessage,
   listInbox,
   claimRewards
 } from "@coti-io/coti-sdk-private-messaging";
 
-const provider = getDefaultProvider(CotiNetwork.Testnet);
+const provider = new JsonRpcProvider(getDefaultCotiRpcUrl(CotiNetwork.Testnet));
 const wallet = new Wallet(process.env.PRIVATE_KEY!, provider);
 wallet.setAesKey(process.env.AES_KEY!);
 
 const client = createPrivateMessagingClient({
-  contractAddress: process.env.CONTRACT_ADDRESS!,
+  network: CotiNetwork.Testnet,
   runner: wallet
 });
 
@@ -130,14 +131,14 @@ Required environment variables:
 
 - `PRIVATE_KEY`
 - `AES_KEY`
-- `CONTRACT_ADDRESS`
 - `COTI_NETWORK`
 
-Optional RPC overrides:
+Optional overrides:
 
-- `COTI_RPC_URL`
-- `COTI_TESTNET_RPC_URL`
-- `COTI_MAINNET_RPC_URL`
+- `PRIVATE_MESSAGING_CONTRACT_ADDRESS_OVERRIDE`
+- `COTI_RPC_URL_OVERRIDE`
+- `COTI_TESTNET_RPC_URL_OVERRIDE`
+- `COTI_MAINNET_RPC_URL_OVERRIDE`
 
 Optional starter-grant service config:
 
@@ -147,6 +148,17 @@ Optional starter-grant service config:
 - `STARTER_GRANT_INSTALL_ID_PATH`
 
 Copy `.env.example` to `.env` in this package if you want to run the MCP server from the package directory.
+
+## Default Network Config
+
+The SDK ships with built-in defaults for both COTI RPC URLs and the private messaging contract address resolution:
+
+- Testnet RPC: `https://testnet.coti.io/rpc`
+- Mainnet RPC: `https://mainnet.coti.io/rpc`
+- Testnet contract: `0xa4C514225Db5B8AE6eF1548d4CE912234A7CD954`
+- Mainnet contract: `0xe461F448cB935a14585F6f1a30F5b4C73ffF8c05`
+
+If you use `createPrivateMessagingClient()` without `contractAddress`, the SDK resolves the address from `network` and defaults to testnet. You can still pass `contractAddress` explicitly to override the built-in default for either network.
 
 When `STARTER_GRANT_SERVICE_URL` is configured, the MCP server also exposes:
 

@@ -93,6 +93,10 @@ export interface ListMessagesResult {
   messages?: ReadMessageResult[];
 }
 
+import type { CotiNetwork } from "@coti-io/coti-ethers";
+
+import type { PrivateMessagingNetwork } from "./constants.js";
+
 export interface ClaimRewardsRequest {
   epoch: bigint | number | string;
 }
@@ -164,7 +168,8 @@ export interface RequestStarterGrantResult extends ClaimStarterGrantResult {
 }
 
 export interface PrivateMessagingClientConfig {
-  contractAddress: string;
+  contractAddress?: string;
+  network?: PrivateMessagingNetwork | CotiNetwork;
   runner: any;
   aesKey?: string;
 }
