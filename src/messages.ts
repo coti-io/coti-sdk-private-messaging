@@ -57,6 +57,26 @@ async function assertRecipientIsValid(
   }
 }
 
+function assertChunkSizeIsSafe(maxChunkBytes: number): void {
+  if (maxChunkBytes > DEFAULT_MAX_MESSAGE_CHUNK_BYTES) {
+    throw new Error(
+      `Configured chunk size exceeds the safe encrypted message limit for COTI. Use maxChunkBytes <= ${DEFAULT_MAX_MESSAGE_CHUNK_BYTES}.`
+    );
+  }
+}
+
+async function assertChunkCountIsWithinLimit(
+  client: PrivateMessagingClient,
+  chunkCount: number
+): Promise<void> {
+  const maxChunksPerMessage = BigInt(await client.contract.MAX_CHUNKS_PER_MESSAGE());
+  if (BigInt(chunkCount) > maxChunksPerMessage) {
+    throw new Error(
+      `Message is too long for a single send. The current contract allows at most ${maxChunksPerMessage.toString()} encrypted chunks per message.`
+    );
+  }
+}
+
 function asBigIntArray(values: readonly unknown[]): bigint[] {
   return values.map((value) => BigInt(value as string | number | bigint));
 }
@@ -204,10 +224,14 @@ export async function sendMessage(
 ): Promise<SendMessageResult> {
   await assertRecipientIsValid(client, request.to);
 
+  const maxChunkBytes = request.maxChunkBytes ?? DEFAULT_MAX_MESSAGE_CHUNK_BYTES;
+  assertChunkSizeIsSafe(maxChunkBytes);
+
   const plaintextChunks = splitPlaintextIntoChunks(
     request.plaintext,
-    request.maxChunkBytes ?? DEFAULT_MAX_MESSAGE_CHUNK_BYTES
+    maxChunkBytes
   );
+  await assertChunkCountIsWithinLimit(client, plaintextChunks.length);
   const functionSelector =
     plaintextChunks.length === 1
       ? client.sendMessageSelector

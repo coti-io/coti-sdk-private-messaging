@@ -35,6 +35,7 @@ function buildStubClient() {
       })
     },
     contract: {
+      MAX_CHUNKS_PER_MESSAGE: async () => 4,
       sendMessage: async (...args: unknown[]) => {
         sendMessageArgs = args;
         return { ...tx, args };
@@ -115,6 +116,38 @@ test("sendMessage fails early for zero-address recipients with a user-facing err
       plaintext: "zero address send"
     }),
     /Cannot send a private message to the zero address/
+  );
+
+  assert.equal(client.sendMessageArgs, undefined);
+  assert.equal(client.sendMultipartMessageArgs, undefined);
+});
+
+test("sendMessage rejects unsafe chunk size overrides before broadcast", async () => {
+  const client = buildStubClient() as any;
+
+  await assert.rejects(
+    sendMessage(client, {
+      to: "0x0000000000000000000000000000000000000002",
+      plaintext: "unsafe chunk size",
+      maxChunkBytes: 25
+    }),
+    /Configured chunk size exceeds the safe encrypted message limit/
+  );
+
+  assert.equal(client.sendMessageArgs, undefined);
+  assert.equal(client.sendMultipartMessageArgs, undefined);
+});
+
+test("sendMessage rejects messages that exceed the contract chunk limit", async () => {
+  const client = buildStubClient() as any;
+
+  await assert.rejects(
+    sendMessage(client, {
+      to: "0x0000000000000000000000000000000000000002",
+      plaintext: "abcde",
+      maxChunkBytes: 1
+    }),
+    /Message is too long for a single send/
   );
 
   assert.equal(client.sendMessageArgs, undefined);

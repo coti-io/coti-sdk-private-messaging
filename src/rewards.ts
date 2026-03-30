@@ -8,6 +8,52 @@ import type {
 } from "./types.js";
 import { PrivateMessagingClient } from "./client.js";
 
+function normalizeEpoch(value: bigint | number | string): bigint {
+  return BigInt(value);
+}
+
+function assertFundingAmountIsPositive(amountWei: bigint): void {
+  if (amountWei <= 0n) {
+    throw new Error("Funding amount must be greater than zero.");
+  }
+}
+
+async function assertClaimRewardsRequestIsValid(
+  client: PrivateMessagingClient,
+  epoch: bigint
+): Promise<void> {
+  const agent = await client.getAddress();
+  const [currentEpoch, usage] = await Promise.all([
+    getCurrentEpoch(client),
+    getEpochUsage(client, epoch, agent)
+  ]);
+
+  if (epoch >= currentEpoch) {
+    throw new Error("Cannot claim rewards for an active or future epoch. Wait until the epoch is closed.");
+  }
+
+  if (usage.hasClaimed) {
+    throw new Error("Rewards for this epoch were already claimed by the configured wallet.");
+  }
+
+  if (usage.pendingRewards <= 0n) {
+    throw new Error("No rewards are available to claim for this epoch and wallet.");
+  }
+}
+
+async function assertFundEpochRequestIsValid(
+  client: PrivateMessagingClient,
+  epoch: bigint,
+  amountWei: bigint
+): Promise<void> {
+  assertFundingAmountIsPositive(amountWei);
+
+  const currentEpoch = await getCurrentEpoch(client);
+  if (epoch < currentEpoch) {
+    throw new Error("Cannot fund a past epoch. Choose the current or a future epoch.");
+  }
+}
+
 export async function getCurrentEpoch(client: PrivateMessagingClient): Promise<bigint> {
   return BigInt(await client.contract.currentEpoch());
 }
@@ -89,8 +135,11 @@ export async function claimRewards(
   client: PrivateMessagingClient,
   request: ClaimRewardsRequest
 ): Promise<ClaimRewardsResult> {
-  const callResult = await client.contract.claimRewards.staticCall(request.epoch);
-  const tx = await client.contract.claimRewards(request.epoch);
+  const epoch = normalizeEpoch(request.epoch);
+  await assertClaimRewardsRequestIsValid(client, epoch);
+
+  const callResult = await client.contract.claimRewards.staticCall(epoch);
+  const tx = await client.contract.claimRewards(epoch);
   const receipt = await tx.wait();
 
   return {
@@ -103,7 +152,10 @@ export async function fundEpoch(
   client: PrivateMessagingClient,
   request: FundEpochRequest
 ): Promise<string> {
-  const tx = await client.contract.fundEpoch(request.epoch, {
+  const epoch = normalizeEpoch(request.epoch);
+  await assertFundEpochRequestIsValid(client, epoch, request.amountWei);
+
+  const tx = await client.contract.fundEpoch(epoch, {
     value: request.amountWei
   });
   const receipt = await tx.wait();

@@ -32,6 +32,29 @@ test("formatUserFacingError translates missing required input fields", () => {
   );
 });
 
+test("formatUserFacingError translates common contract revert names", () => {
+  assert.equal(
+    formatUserFacingError(new Error("execution reverted: MessageNotFound()")),
+    "The requested message does not exist."
+  );
+  assert.equal(
+    formatUserFacingError(new Error("execution reverted: UnauthorizedViewer()")),
+    "The configured wallet is not authorized to view or decrypt this message."
+  );
+  assert.equal(
+    formatUserFacingError(new Error("execution reverted: NothingToClaim()")),
+    "There are no rewards available to claim for this epoch and wallet."
+  );
+  assert.equal(
+    formatUserFacingError(new Error("execution reverted: AlreadyClaimed()")),
+    "Rewards for this epoch were already claimed by this wallet."
+  );
+  assert.equal(
+    formatUserFacingError(new Error("execution reverted: ZeroValue()")),
+    "The transaction amount must be greater than zero."
+  );
+});
+
 test("formatToolErrorResult returns MCP-friendly error payloads", () => {
   const result = formatToolErrorResult(
     new Error("Missing required environment variable: PRIVATE_KEY")
