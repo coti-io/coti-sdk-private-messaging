@@ -13,7 +13,7 @@ export {
 } from "./client.js";
 export {
   DEFAULT_MAX_MESSAGE_CHUNK_BYTES,
-  DEFAULT_MULTIPART_GAS_BUFFER_BPS,
+  DEFAULT_ENCRYPTED_MESSAGE_GAS_LIMIT,
   encryptMessageInput,
   getAccountStats,
   getMessageMetadata,

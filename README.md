@@ -56,14 +56,13 @@ const claim = await claimRewards(client, {
 
 Longer plaintext is chunked automatically. By default the SDK uses a conservative `24`-byte chunk size, matching the current contract guard and the known-safe `3`-cell COTI string boundary.
 
-For multipart sends, the SDK estimates gas and adds a default safety buffer before submitting the transaction. You can still override this when needed:
+For encrypted message sends, the SDK always attaches a conservative gas limit because estimation is unreliable for encrypted values on COTI. You can still override it when needed:
 
 ```ts
 await sendMessage(client, {
   to: "0xRecipient",
   plaintext: "very long message ...",
-  gasLimit: 8_000_000n,
-  gasBufferBps: 2_500
+  gasLimit: 8_000_000n
 });
 ```
 
@@ -140,7 +139,7 @@ Optional overrides:
 - `COTI_TESTNET_RPC_URL_OVERRIDE`
 - `COTI_MAINNET_RPC_URL_OVERRIDE`
 
-Optional starter-grant service config:
+Optional starter-grant service config overrides:
 
 - `STARTER_GRANT_SERVICE_URL`
 - `STARTER_GRANT_SERVICE_TIMEOUT_MS`
@@ -160,7 +159,7 @@ The SDK ships with built-in defaults for both COTI RPC URLs and the private mess
 
 If you use `createPrivateMessagingClient()` without `contractAddress`, the SDK resolves the address from `network` and defaults to testnet. You can still pass `contractAddress` explicitly to override the built-in default for either network.
 
-When `STARTER_GRANT_SERVICE_URL` is configured, the MCP server also exposes:
+The MCP server exposes these starter-grant tools by default, pointing at the deployed service unless you override it with `STARTER_GRANT_SERVICE_URL`:
 
 - `get_starter_grant_challenge`
 - `get_starter_grant_status`

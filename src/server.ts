@@ -16,6 +16,7 @@ import {
 } from "./constants.js";
 import { invokePrivateMessagingTool } from "./mcp.js";
 import { PRIVATE_MESSAGING_MCP_TOOLS } from "./mcp.js";
+import { formatToolErrorResult, formatUserFacingError } from "./errors.js";
 import type { StarterGrantServiceConfig } from "./types.js";
 
 function getRequiredEnv(name: string): string {
@@ -66,17 +67,21 @@ function parseNumber(value: string | undefined, fallback: number): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
-function resolveStarterGrantServiceConfig(): StarterGrantServiceConfig | undefined {
-  const url = process.env.STARTER_GRANT_SERVICE_URL;
-  if (!url) {
-    return undefined;
-  }
+const DEFAULT_STARTER_GRANT_SERVICE_URL = "http://100.31.44.211:8787";
+const DEFAULT_STARTER_GRANT_SERVICE_TIMEOUT_MS = 15_000;
+const DEFAULT_STARTER_GRANT_INSTALL_ID_PATH =
+  "~/.config/coti-sdk-private-messaging/install-state.json";
 
+function resolveStarterGrantServiceConfig(): StarterGrantServiceConfig | undefined {
   return {
-    url,
-    timeoutMs: parseNumber(process.env.STARTER_GRANT_SERVICE_TIMEOUT_MS, 15_000),
+    url: process.env.STARTER_GRANT_SERVICE_URL ?? DEFAULT_STARTER_GRANT_SERVICE_URL,
+    timeoutMs: parseNumber(
+      process.env.STARTER_GRANT_SERVICE_TIMEOUT_MS,
+      DEFAULT_STARTER_GRANT_SERVICE_TIMEOUT_MS
+    ),
     authToken: process.env.STARTER_GRANT_SERVICE_AUTH_TOKEN,
-    installIdPath: process.env.STARTER_GRANT_INSTALL_ID_PATH
+    installIdPath:
+      process.env.STARTER_GRANT_INSTALL_ID_PATH ?? DEFAULT_STARTER_GRANT_INSTALL_ID_PATH
   };
 }
 
@@ -101,6 +106,15 @@ function formatToolContent(result: unknown) {
       text: JSON.stringify(result, null, 2)
     }
   ];
+}
+
+async function executeTool(action: () => Promise<unknown>) {
+  try {
+    const result = await action();
+    return { content: formatToolContent(result) };
+  } catch (error) {
+    return formatToolErrorResult(error);
+  }
 }
 
 export async function startMcpServer() {
@@ -136,10 +150,11 @@ export async function startMcpServer() {
       }
     },
     async (args) => {
-      const result = await invokePrivateMessagingTool(client, "send_message", args, {
-        starterGrantConfig
-      });
-      return { content: formatToolContent(result) };
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "send_message", args, {
+          starterGrantConfig
+        })
+      );
     }
   );
 
@@ -155,10 +170,11 @@ export async function startMcpServer() {
       }
     },
     async (args) => {
-      const result = await invokePrivateMessagingTool(client, "read_message", args, {
-        starterGrantConfig
-      });
-      return { content: formatToolContent(result) };
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "read_message", args, {
+          starterGrantConfig
+        })
+      );
     }
   );
 
@@ -178,10 +194,11 @@ export async function startMcpServer() {
       inputSchema: listSchema
     },
     async (args) => {
-      const result = await invokePrivateMessagingTool(client, "list_inbox", args, {
-        starterGrantConfig
-      });
-      return { content: formatToolContent(result) };
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "list_inbox", args, {
+          starterGrantConfig
+        })
+      );
     }
   );
 
@@ -194,10 +211,11 @@ export async function startMcpServer() {
       inputSchema: listSchema
     },
     async (args) => {
-      const result = await invokePrivateMessagingTool(client, "list_sent", args, {
-        starterGrantConfig
-      });
-      return { content: formatToolContent(result) };
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "list_sent", args, {
+          starterGrantConfig
+        })
+      );
     }
   );
 
@@ -210,10 +228,11 @@ export async function startMcpServer() {
       )?.description
     },
     async () => {
-      const result = await invokePrivateMessagingTool(client, "get_contract_config", {}, {
-        starterGrantConfig
-      });
-      return { content: formatToolContent(result) };
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "get_contract_config", {}, {
+          starterGrantConfig
+        })
+      );
     }
   );
 
@@ -229,10 +248,11 @@ export async function startMcpServer() {
       }
     },
     async (args) => {
-      const result = await invokePrivateMessagingTool(client, "get_account_stats", args, {
-        starterGrantConfig
-      });
-      return { content: formatToolContent(result) };
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "get_account_stats", args, {
+          starterGrantConfig
+        })
+      );
     }
   );
 
@@ -248,10 +268,11 @@ export async function startMcpServer() {
       }
     },
     async (args) => {
-      const result = await invokePrivateMessagingTool(client, "get_message_metadata", args, {
-        starterGrantConfig
-      });
-      return { content: formatToolContent(result) };
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "get_message_metadata", args, {
+          starterGrantConfig
+        })
+      );
     }
   );
 
@@ -264,10 +285,11 @@ export async function startMcpServer() {
       )?.description
     },
     async () => {
-      const result = await invokePrivateMessagingTool(client, "get_current_epoch", {}, {
-        starterGrantConfig
-      });
-      return { content: formatToolContent(result) };
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "get_current_epoch", {}, {
+          starterGrantConfig
+        })
+      );
     }
   );
 
@@ -287,13 +309,11 @@ export async function startMcpServer() {
       }
     },
     async (args) => {
-      const result = await invokePrivateMessagingTool(
-        client,
-        "get_epoch_for_timestamp",
-        args,
-        { starterGrantConfig }
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "get_epoch_for_timestamp", args, {
+          starterGrantConfig
+        })
       );
-      return { content: formatToolContent(result) };
     }
   );
 
@@ -310,10 +330,11 @@ export async function startMcpServer() {
       }
     },
     async (args) => {
-      const result = await invokePrivateMessagingTool(client, "get_epoch_usage", args, {
-        starterGrantConfig
-      });
-      return { content: formatToolContent(result) };
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "get_epoch_usage", args, {
+          starterGrantConfig
+        })
+      );
     }
   );
 
@@ -327,10 +348,11 @@ export async function startMcpServer() {
       inputSchema: epochSchema
     },
     async (args) => {
-      const result = await invokePrivateMessagingTool(client, "get_epoch_summary", args, {
-        starterGrantConfig
-      });
-      return { content: formatToolContent(result) };
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "get_epoch_summary", args, {
+          starterGrantConfig
+        })
+      );
     }
   );
 
@@ -347,10 +369,11 @@ export async function startMcpServer() {
       }
     },
     async (args) => {
-      const result = await invokePrivateMessagingTool(client, "get_pending_rewards", args, {
-        starterGrantConfig
-      });
-      return { content: formatToolContent(result) };
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "get_pending_rewards", args, {
+          starterGrantConfig
+        })
+      );
     }
   );
 
@@ -364,10 +387,11 @@ export async function startMcpServer() {
       inputSchema: epochSchema
     },
     async (args) => {
-      const result = await invokePrivateMessagingTool(client, "claim_rewards", args, {
-        starterGrantConfig
-      });
-      return { content: formatToolContent(result) };
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "claim_rewards", args, {
+          starterGrantConfig
+        })
+      );
     }
   );
 
@@ -383,10 +407,11 @@ export async function startMcpServer() {
       }
     },
     async (args) => {
-      const result = await invokePrivateMessagingTool(client, "fund_epoch", args, {
-        starterGrantConfig
-      });
-      return { content: formatToolContent(result) };
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "fund_epoch", args, {
+          starterGrantConfig
+        })
+      );
     }
   );
 
@@ -399,13 +424,11 @@ export async function startMcpServer() {
       )?.description
     },
     async () => {
-      const result = await invokePrivateMessagingTool(
-        client,
-        "get_starter_grant_challenge",
-        {},
-        { starterGrantConfig }
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "get_starter_grant_challenge", {}, {
+          starterGrantConfig
+        })
       );
-      return { content: formatToolContent(result) };
     }
   );
 
@@ -418,13 +441,11 @@ export async function startMcpServer() {
       )?.description
     },
     async () => {
-      const result = await invokePrivateMessagingTool(
-        client,
-        "get_starter_grant_status",
-        {},
-        { starterGrantConfig }
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "get_starter_grant_status", {}, {
+          starterGrantConfig
+        })
       );
-      return { content: formatToolContent(result) };
     }
   );
 
@@ -442,10 +463,11 @@ export async function startMcpServer() {
       }
     },
     async (args) => {
-      const result = await invokePrivateMessagingTool(client, "claim_starter_grant", args, {
-        starterGrantConfig
-      });
-      return { content: formatToolContent(result) };
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "claim_starter_grant", args, {
+          starterGrantConfig
+        })
+      );
     }
   );
 
@@ -458,13 +480,11 @@ export async function startMcpServer() {
       )?.description
     },
     async () => {
-      const result = await invokePrivateMessagingTool(
-        client,
-        "request_starter_grant",
-        {},
-        { starterGrantConfig }
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "request_starter_grant", {}, {
+          starterGrantConfig
+        })
       );
-      return { content: formatToolContent(result) };
     }
   );
 
@@ -476,7 +496,7 @@ const isDirectExecution = process.argv[1]?.endsWith("/server.js");
 
 if (isDirectExecution) {
   startMcpServer().catch((error) => {
-    console.error(error);
+    console.error(formatUserFacingError(error));
     process.exitCode = 1;
   });
 }

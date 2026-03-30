@@ -54,12 +54,14 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
         },
         gasLimit: {
           oneOf: [{ type: "string" }, { type: "integer" }],
-          description: "Optional manual gas limit override for the send transaction."
+          description:
+            "Optional manual gas limit override. The SDK otherwise applies a conservative default for encrypted COTI sends."
         },
         gasBufferBps: {
           type: "integer",
           minimum: 0,
-          description: "Optional multipart gas buffer in basis points. Defaults to 2000."
+          description:
+            "Deprecated compatibility field. Gas estimation is not used for encrypted COTI sends."
         }
       },
       required: ["to", "plaintext"]

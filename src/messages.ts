@@ -13,7 +13,7 @@ import type {
 import { PrivateMessagingClient } from "./client.js";
 
 export const DEFAULT_MAX_MESSAGE_CHUNK_BYTES = 24;
-export const DEFAULT_MULTIPART_GAS_BUFFER_BPS = 2_000;
+export const DEFAULT_ENCRYPTED_MESSAGE_GAS_LIMIT = 8_000_000n;
 
 function normalizeBigInt(
   value: bigint | number | string | undefined
@@ -25,36 +25,36 @@ function normalizeBigInt(
   return BigInt(value);
 }
 
-function applyGasBuffer(estimatedGas: bigint, gasBufferBps: number): bigint {
-  if (!Number.isInteger(gasBufferBps) || gasBufferBps < 0) {
-    throw new Error("gasBufferBps must be a non-negative integer.");
-  }
-
-  return (estimatedGas * BigInt(10_000 + gasBufferBps) + 9_999n) / 10_000n;
+function resolveMessageGasLimit(
+  requestedGasLimit: bigint | number | string | undefined
+): bigint {
+  const gasLimit = normalizeBigInt(requestedGasLimit);
+  return gasLimit ?? DEFAULT_ENCRYPTED_MESSAGE_GAS_LIMIT;
 }
 
-async function resolveMultipartGasLimit(
+function normalizeAddress(address: string): string {
+  return address.toLowerCase();
+}
+
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
+async function assertRecipientIsValid(
   client: PrivateMessagingClient,
-  to: string,
-  encryptedChunks: any[],
-  requestedGasLimit: bigint | number | string | undefined,
-  requestedGasBufferBps: number | undefined
-): Promise<bigint | undefined> {
-  const gasLimit = normalizeBigInt(requestedGasLimit);
-  if (gasLimit !== undefined) {
-    return gasLimit;
+  recipient: string
+): Promise<void> {
+  const normalizedRecipient = normalizeAddress(recipient);
+  if (normalizedRecipient === ZERO_ADDRESS) {
+    throw new Error(
+      "Cannot send a private message to the zero address. Choose a valid recipient address."
+    );
   }
 
-  const estimateGas = client.contract?.sendMultipartMessage?.estimateGas;
-  if (typeof estimateGas !== "function") {
-    return undefined;
+  const sender = await client.getAddress();
+  if (normalizeAddress(sender) === normalizedRecipient) {
+    throw new Error(
+      "Cannot send a private message to the sender address. Choose a different recipient to avoid the contract's InvalidRecipient() revert."
+    );
   }
-
-  const estimatedGas = BigInt(await estimateGas(to, encryptedChunks));
-  return applyGasBuffer(
-    estimatedGas,
-    requestedGasBufferBps ?? DEFAULT_MULTIPART_GAS_BUFFER_BPS
-  );
 }
 
 function asBigIntArray(values: readonly unknown[]): bigint[] {
@@ -202,6 +202,8 @@ export async function sendMessage(
   client: PrivateMessagingClient,
   request: SendMessageRequest
 ): Promise<SendMessageResult> {
+  await assertRecipientIsValid(client, request.to);
+
   const plaintextChunks = splitPlaintextIntoChunks(
     request.plaintext,
     request.maxChunkBytes ?? DEFAULT_MAX_MESSAGE_CHUNK_BYTES
@@ -214,27 +216,18 @@ export async function sendMessage(
   const encryptedChunks = await Promise.all(
     plaintextChunks.map((chunk) => encryptChunkInput(client, chunk, functionSelector))
   );
-  const multipartGasLimit =
-    encryptedChunks.length > 1
-      ? await resolveMultipartGasLimit(
-          client,
-          request.to,
-          encryptedChunks,
-          request.gasLimit,
-          request.gasBufferBps
-        )
-      : normalizeBigInt(request.gasLimit);
-  const txOverrides =
-    multipartGasLimit === undefined ? undefined : { gasLimit: multipartGasLimit };
+  const txOverrides = {
+    gasLimit: resolveMessageGasLimit(request.gasLimit)
+  };
 
-  const tx =
-    encryptedChunks.length === 1
-      ? await client.contract.sendMessage(request.to, encryptedChunks[0], txOverrides)
-      : await client.contract.sendMultipartMessage(
-          request.to,
-          encryptedChunks,
-          txOverrides
-        );
+  let tx;
+  if (encryptedChunks.length === 1) {
+    tx =
+      await client.contract.sendMessage(request.to, encryptedChunks[0], txOverrides);
+  } else {
+    tx =
+      await client.contract.sendMultipartMessage(request.to, encryptedChunks, txOverrides);
+  }
   const receipt = await tx.wait();
 
   return {
