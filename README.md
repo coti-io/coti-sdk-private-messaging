@@ -168,6 +168,16 @@ The MCP server exposes these starter-grant tools by default, pointing at the dep
 
 The starter-grant flow now supports three patterns: request a challenge directly, inspect current claim status, or use the single-call `request_starter_grant` helper for the current trivial prompt flow. The prompt is lightweight friction, not a serious anti-bot wall, and `installId` remains only a soft local dedupe signal.
 
+The SDK-level starter-grant helpers also default to the deployed service, so `url` is optional unless you want to override it:
+
+```ts
+import { requestStarterGrant } from "@coti-io/coti-sdk-private-messaging";
+
+const result = await requestStarterGrant(client, {
+  timeoutMs: 15000
+});
+```
+
 ## ABI Source
 
 The SDK ships a vendored ABI snapshot in `src/abi.ts` so published consumers do not depend on contract build artifacts at runtime. Maintainers can refresh it with:

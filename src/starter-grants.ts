@@ -9,16 +9,21 @@ import type {
   StarterGrantServiceConfig
 } from "./types.js";
 
+export const DEFAULT_STARTER_GRANT_SERVICE_URL = "http://100.31.44.211:8787";
+export const DEFAULT_STARTER_GRANT_SERVICE_TIMEOUT_MS = 15_000;
+export const DEFAULT_STARTER_GRANT_INSTALL_ID_PATH =
+  "~/.config/coti-sdk-private-messaging/install-state.json";
+
 function requireStarterGrantConfig(
   config: StarterGrantServiceConfig | undefined
-): StarterGrantServiceConfig {
-  if (!config?.url) {
-    throw new Error(
-      "Starter grant service is not configured. Set STARTER_GRANT_SERVICE_URL for the MCP server."
-    );
-  }
-
-  return config;
+): Required<Pick<StarterGrantServiceConfig, "url" | "timeoutMs" | "installIdPath">> &
+  Pick<StarterGrantServiceConfig, "authToken"> {
+  return {
+    url: config?.url ?? DEFAULT_STARTER_GRANT_SERVICE_URL,
+    timeoutMs: config?.timeoutMs ?? DEFAULT_STARTER_GRANT_SERVICE_TIMEOUT_MS,
+    authToken: config?.authToken,
+    installIdPath: config?.installIdPath ?? DEFAULT_STARTER_GRANT_INSTALL_ID_PATH
+  };
 }
 
 async function postJson<T>(

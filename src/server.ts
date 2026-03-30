@@ -14,6 +14,11 @@ import {
   getDefaultCotiRpcUrl,
   getDefaultPrivateMessagingContractAddress
 } from "./constants.js";
+import {
+  DEFAULT_STARTER_GRANT_INSTALL_ID_PATH,
+  DEFAULT_STARTER_GRANT_SERVICE_TIMEOUT_MS,
+  DEFAULT_STARTER_GRANT_SERVICE_URL
+} from "./starter-grants.js";
 import { invokePrivateMessagingTool } from "./mcp.js";
 import { PRIVATE_MESSAGING_MCP_TOOLS } from "./mcp.js";
 import { formatToolErrorResult, formatUserFacingError } from "./errors.js";
@@ -66,11 +71,6 @@ function parseNumber(value: string | undefined, fallback: number): number {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
-
-const DEFAULT_STARTER_GRANT_SERVICE_URL = "http://100.31.44.211:8787";
-const DEFAULT_STARTER_GRANT_SERVICE_TIMEOUT_MS = 15_000;
-const DEFAULT_STARTER_GRANT_INSTALL_ID_PATH =
-  "~/.config/coti-sdk-private-messaging/install-state.json";
 
 function resolveStarterGrantServiceConfig(): StarterGrantServiceConfig | undefined {
   return {

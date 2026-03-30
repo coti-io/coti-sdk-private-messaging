@@ -112,8 +112,8 @@ export interface FundEpochRequest {
 }
 
 export interface StarterGrantServiceConfig {
-  url: string;
-  timeoutMs: number;
+  url?: string;
+  timeoutMs?: number;
   authToken?: string;
   installIdPath?: string;
 }
