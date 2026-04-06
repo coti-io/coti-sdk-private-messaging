@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "license": "Apache-2.0",
   "description": "TypeScript SDK for COTI private messaging, encrypted message access, rewards, and MCP tooling.",
-  "author": "COTI Development",
+  "author": "dev@coti.io",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
