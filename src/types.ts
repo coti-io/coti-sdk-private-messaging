@@ -40,7 +40,6 @@ export interface EpochUsage {
 }
 
 export interface ContractConfig {
-  owner: string;
   epochDuration: bigint;
   genesisTimestamp: bigint;
   maxChunkCells: bigint;

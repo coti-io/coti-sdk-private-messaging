@@ -94,7 +94,7 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   },
   {
     name: "get_contract_config",
-    description: "Read contract ownership, epoch timing, and chunk-limit configuration.",
+    description: "Read contract epoch timing and chunk-limit configuration.",
     inputSchema: {
       type: "object",
       properties: {}

@@ -68,9 +68,8 @@ export async function getEpochForTimestamp(
 export async function getContractConfig(
   client: PrivateMessagingClient
 ): Promise<ContractConfig> {
-  const [owner, epochDuration, genesisTimestamp, maxChunkCells, maxChunksPerMessage] =
+  const [epochDuration, genesisTimestamp, maxChunkCells, maxChunksPerMessage] =
     await Promise.all([
-      client.contract.owner(),
       client.contract.epochDuration(),
       client.contract.genesisTimestamp(),
       client.contract.MAX_CHUNK_CELLS(),
@@ -78,7 +77,6 @@ export async function getContractConfig(
     ]);
 
   return {
-    owner,
     epochDuration: BigInt(epochDuration),
     genesisTimestamp: BigInt(genesisTimestamp),
     maxChunkCells: BigInt(maxChunkCells),

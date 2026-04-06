@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { claimRewards, fundEpoch } from "../src/rewards.js";
+import { claimRewards, fundEpoch, getContractConfig } from "../src/rewards.js";
 
 function buildRewardsClient(options?: {
   currentEpoch?: bigint;
@@ -120,4 +120,24 @@ test("fundEpoch sends value for the current epoch after passing preflight checks
 
   assert.equal(txHash, "0xtx");
   assert.deepEqual(client.fundEpochArgs, [5n, { value: 123n }]);
+});
+
+test("getContractConfig reads epoch and chunk settings", async () => {
+  const client = {
+    contract: {
+      epochDuration: async () => 1209600n,
+      genesisTimestamp: async () => 1735689600n,
+      MAX_CHUNK_CELLS: async () => 24n,
+      MAX_CHUNKS_PER_MESSAGE: async () => 16n
+    }
+  } as any;
+
+  const config = await getContractConfig(client);
+
+  assert.deepEqual(config, {
+    epochDuration: 1209600n,
+    genesisTimestamp: 1735689600n,
+    maxChunkCells: 24n,
+    maxChunksPerMessage: 16n
+  });
 });
