@@ -9,7 +9,7 @@ import type {
   StarterGrantServiceConfig
 } from "./types.js";
 
-export const DEFAULT_STARTER_GRANT_SERVICE_URL = "http://100.31.44.211:8787";
+export const DEFAULT_STARTER_GRANT_SERVICE_URL = "http://44.192.77.145:8787";
 export const DEFAULT_STARTER_GRANT_SERVICE_TIMEOUT_MS = 15_000;
 export const DEFAULT_STARTER_GRANT_INSTALL_ID_PATH =
   "~/.config/coti-sdk-private-messaging/install-state.json";
