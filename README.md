@@ -21,12 +21,14 @@ For zero-prereq setup, initialize local `.env` first:
 
 ```bash
 npx coti-private-messaging-init
+npx coti-private-messaging-send-read-smoke
 ```
 
 From this SDK repository checkout:
 
 ```bash
 npm run init
+npm run smoke:send-read
 ```
 
 The init command fills missing `PRIVATE_KEY` and `AES_KEY`, requests a starter grant when the generated wallet has no gas, defaults to mainnet, and leaves existing env values untouched.
@@ -174,15 +176,17 @@ Copy `.env.example` to `.env` in this package if you want to run the MCP server 
 
 ## Send/read smoke test
 
-From this SDK repository checkout, run init once, then run the smoke test:
+From an installed project, run init once, then run the smoke test:
+
+```bash
+npx coti-private-messaging-init
+npx coti-private-messaging-send-read-smoke
+```
+
+From this SDK repository checkout:
 
 ```bash
 npm run init
-```
-
-Then run:
-
-```bash
 npm run smoke:send-read
 ```
 
@@ -192,6 +196,12 @@ To dogfood the receiver side with a second wallet, run init in a separate checko
 
 ```bash
 npm run smoke:read-inbox
+```
+
+From an installed project:
+
+```bash
+npx coti-private-messaging-read-inbox-smoke
 ```
 
 This lists the receiver inbox and attempts to decrypt messages with the receiver wallet.
