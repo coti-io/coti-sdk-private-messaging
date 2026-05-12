@@ -1,4 +1,8 @@
+#!/usr/bin/env node
 import "dotenv/config";
+
+import { realpathSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 import {
   CotiNetwork,
@@ -492,9 +496,20 @@ export async function startMcpServer() {
   await server.connect(transport);
 }
 
-const isDirectExecution = process.argv[1]?.endsWith("/server.js");
+function isDirectExecution(): boolean {
+  const argvPath = process.argv[1];
+  if (!argvPath) {
+    return false;
+  }
 
-if (isDirectExecution) {
+  try {
+    return realpathSync(argvPath) === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return argvPath.endsWith("/server.js") || argvPath.endsWith("\\server.js");
+  }
+}
+
+if (isDirectExecution()) {
   startMcpServer().catch((error) => {
     console.error(formatUserFacingError(error));
     process.exitCode = 1;

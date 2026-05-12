@@ -15,6 +15,8 @@ TypeScript client for `PrivateMessaging`.
 
 ## Example
 
+For a copy-paste operator path, use the [Private Messaging Quickstart](https://github.com/coti-io/documentation/blob/main/private-messaging/quickstart.md) in the docs repo. This README is the SDK reference.
+
 Install:
 
 ```bash
@@ -119,7 +121,15 @@ The MCP tool registry includes:
 
 ## MCP Server
 
-The package also ships a stdio MCP server entrypoint:
+The package also ships a stdio MCP server entrypoint.
+
+If the SDK is installed in your project, run the package binary:
+
+```bash
+npx coti-sdk-private-messaging-mcp
+```
+
+If you are working from this SDK repository checkout, build first and then run the local server:
 
 ```bash
 npm run build
@@ -147,6 +157,16 @@ Optional starter-grant service config overrides:
 - `STARTER_GRANT_INSTALL_ID_PATH`
 
 Copy `.env.example` to `.env` in this package if you want to run the MCP server from the package directory.
+
+## Send/read smoke test
+
+From this SDK repository checkout, copy `.env.example` to `.env`, set `PRIVATE_KEY`, `AES_KEY`, and `COTI_NETWORK`, then run:
+
+```bash
+npm run smoke:send-read
+```
+
+This sends a short private message, lists the sender's sent-message page, and reads the message back when the transaction receipt exposes `messageId`. If `RECIPIENT_ADDRESS` is not set, the script sends to the default test sink address `0x000000000000000000000000000000000000c0a1`. Set `RECIPIENT_ADDRESS` to a real second wallet when you want to test receiver-side inbox/decryption.
 
 ## Default Network Config
 
