@@ -168,6 +168,14 @@ npm run smoke:send-read
 
 This sends a short private message, lists the sender's sent-message page, and reads the message back when the transaction receipt exposes `messageId`. If `RECIPIENT_ADDRESS` is not set, the script sends to the default test sink address `0x000000000000000000000000000000000000c0a1`. Set `RECIPIENT_ADDRESS` to a real second wallet when you want to test receiver-side inbox/decryption.
 
+To dogfood the receiver side with a second wallet, set `.env` to the receiver wallet's `PRIVATE_KEY` and `AES_KEY`, then run:
+
+```bash
+npm run smoke:read-inbox
+```
+
+This lists the receiver inbox and attempts to decrypt messages with the receiver wallet.
+
 ## Default Network Config
 
 The SDK ships with built-in defaults for both COTI RPC URLs and the private messaging contract address resolution:

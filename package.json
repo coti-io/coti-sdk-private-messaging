@@ -44,6 +44,7 @@
     "prepare": "tsc -p tsconfig.json",
     "build": "tsc -p tsconfig.json",
     "lint": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json",
+    "smoke:read-inbox": "npm run build && node ./examples/read-inbox-smoke.mjs",
     "smoke:send-read": "npm run build && node ./examples/send-read-smoke.mjs",
     "sync:abi": "node ./scripts/sync-abi.mjs",
     "start:mcp": "node ./dist/server.js",
