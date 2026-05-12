@@ -38,7 +38,7 @@ function getRequiredEnv(name: string): string {
 }
 
 function resolveNetwork(): CotiNetwork {
-  const raw = (process.env.COTI_NETWORK ?? "testnet").toLowerCase();
+  const raw = (process.env.COTI_NETWORK ?? "mainnet").toLowerCase();
 
   if (raw === "mainnet") {
     return CotiNetwork.Mainnet;

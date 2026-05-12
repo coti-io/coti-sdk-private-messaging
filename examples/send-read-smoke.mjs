@@ -24,13 +24,13 @@ function validateRequiredEnv(names) {
   if (missing.length > 0) {
     throw new Error(
       `Missing required environment variable(s): ${missing.join(", ")}. ` +
-        "Copy .env.example to .env and fill PRIVATE_KEY and AES_KEY. COTI_NETWORK defaults to testnet; RECIPIENT_ADDRESS is optional."
+        "Run `npm run init` from this SDK checkout, or `npx coti-private-messaging-init` from an installed project. COTI_NETWORK defaults to mainnet; RECIPIENT_ADDRESS is optional."
     );
   }
 }
 
 function resolveNetwork() {
-  return (process.env.COTI_NETWORK ?? "testnet").toLowerCase() === "mainnet"
+  return (process.env.COTI_NETWORK ?? "mainnet").toLowerCase() === "mainnet"
     ? CotiNetwork.Mainnet
     : CotiNetwork.Testnet;
 }
@@ -64,7 +64,7 @@ const plaintext =
 
 console.log(`sender=${wallet.address}`);
 console.log(`recipient=${recipient}`);
-console.log(`network=${process.env.COTI_NETWORK ?? "testnet"}`);
+console.log(`network=${process.env.COTI_NETWORK ?? "mainnet"}`);
 
 const sent = await sendMessage(client, {
   to: recipient,

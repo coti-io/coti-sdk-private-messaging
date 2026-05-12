@@ -17,6 +17,20 @@ TypeScript client for `PrivateMessaging`.
 
 For a copy-paste operator path, use the [Private Messaging Quickstart](https://github.com/coti-io/documentation/blob/main/private-messaging/quickstart.md) in the docs repo. This README is the SDK reference.
 
+For zero-prereq setup, initialize local `.env` first:
+
+```bash
+npx coti-private-messaging-init
+```
+
+From this SDK repository checkout:
+
+```bash
+npm run init
+```
+
+The init command fills missing `PRIVATE_KEY` and `AES_KEY`, requests a starter grant when the generated wallet has no gas, defaults to mainnet, and leaves existing env values untouched.
+
 Install:
 
 ```bash
@@ -140,10 +154,10 @@ Required environment variables:
 
 - `PRIVATE_KEY`
 - `AES_KEY`
-- `COTI_NETWORK`
 
 Optional overrides:
 
+- `COTI_NETWORK`
 - `PRIVATE_MESSAGING_CONTRACT_ADDRESS_OVERRIDE`
 - `COTI_RPC_URL_OVERRIDE`
 - `COTI_TESTNET_RPC_URL_OVERRIDE`
@@ -160,7 +174,13 @@ Copy `.env.example` to `.env` in this package if you want to run the MCP server 
 
 ## Send/read smoke test
 
-From this SDK repository checkout, copy `.env.example` to `.env`, set `PRIVATE_KEY`, `AES_KEY`, and `COTI_NETWORK`, then run:
+From this SDK repository checkout, run init once, then run the smoke test:
+
+```bash
+npm run init
+```
+
+Then run:
 
 ```bash
 npm run smoke:send-read
@@ -168,7 +188,7 @@ npm run smoke:send-read
 
 This sends a short private message, lists the sender's sent-message page, and reads the message back when the transaction receipt exposes `messageId`. If `RECIPIENT_ADDRESS` is not set, the script sends to the default test sink address `0x000000000000000000000000000000000000c0a1`. Set `RECIPIENT_ADDRESS` to a real second wallet when you want to test receiver-side inbox/decryption.
 
-To dogfood the receiver side with a second wallet, set `.env` to the receiver wallet's `PRIVATE_KEY` and `AES_KEY`, then run:
+To dogfood the receiver side with a second wallet, run init in a separate checkout/project or set `.env` to the receiver wallet's `PRIVATE_KEY` and `AES_KEY`, then run:
 
 ```bash
 npm run smoke:read-inbox
@@ -185,7 +205,7 @@ The SDK ships with built-in defaults for both COTI RPC URLs and the private mess
 - Testnet contract: `0xa4C514225Db5B8AE6eF1548d4CE912234A7CD954`
 - Mainnet contract: `0xe461F448cB935a14585F6f1a30F5b4C73ffF8c05`
 
-If you use `createPrivateMessagingClient()` without `contractAddress`, the SDK resolves the address from `network` and defaults to testnet. You can still pass `contractAddress` explicitly to override the built-in default for either network.
+If you use `createPrivateMessagingClient()` without `contractAddress`, the SDK resolves the address from `network` and defaults to mainnet. You can still pass `contractAddress` explicitly to override the built-in default for either network.
 
 The MCP server exposes these starter-grant tools by default, pointing at the deployed service unless you override it with `STARTER_GRANT_SERVICE_URL`:
 

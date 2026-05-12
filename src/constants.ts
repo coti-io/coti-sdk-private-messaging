@@ -19,7 +19,11 @@ export function normalizePrivateMessagingNetwork(
     return "mainnet";
   }
 
-  return "testnet";
+  if (network === CotiNetwork.Testnet || network === "testnet") {
+    return "testnet";
+  }
+
+  return "mainnet";
 }
 
 export function getDefaultCotiRpcUrl(

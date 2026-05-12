@@ -16,13 +16,13 @@ function validateRequiredEnv(names) {
   if (missing.length > 0) {
     throw new Error(
       `Missing required environment variable(s): ${missing.join(", ")}. ` +
-        "Copy .env.example to .env and fill the receiver PRIVATE_KEY and AES_KEY."
+        "Run `npm run init` for this receiver wallet setup, or set the receiver PRIVATE_KEY and AES_KEY manually."
     );
   }
 }
 
 function resolveNetwork() {
-  return (process.env.COTI_NETWORK ?? "testnet").toLowerCase() === "mainnet"
+  return (process.env.COTI_NETWORK ?? "mainnet").toLowerCase() === "mainnet"
     ? CotiNetwork.Mainnet
     : CotiNetwork.Testnet;
 }
@@ -56,6 +56,6 @@ const inbox = await listInbox(client, {
 });
 
 console.log(`receiver=${wallet.address}`);
-console.log(`network=${process.env.COTI_NETWORK ?? "testnet"}`);
+console.log(`network=${process.env.COTI_NETWORK ?? "mainnet"}`);
 console.log("inbox=");
 console.log(jsonStringify(inbox));

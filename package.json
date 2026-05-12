@@ -29,7 +29,8 @@
     "sdk"
   ],
   "bin": {
-    "coti-sdk-private-messaging-mcp": "./dist/server.js"
+    "coti-private-messaging-init": "examples/init-private-messaging.mjs",
+    "coti-sdk-private-messaging-mcp": "dist/server.js"
   },
   "exports": {
     ".": {
@@ -44,6 +45,7 @@
     "prepare": "tsc -p tsconfig.json",
     "build": "tsc -p tsconfig.json",
     "lint": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json",
+    "init": "npm run build && node ./examples/init-private-messaging.mjs",
     "smoke:read-inbox": "npm run build && node ./examples/read-inbox-smoke.mjs",
     "smoke:send-read": "npm run build && node ./examples/send-read-smoke.mjs",
     "sync:abi": "node ./scripts/sync-abi.mjs",
@@ -61,5 +63,9 @@
     "@modelcontextprotocol/sdk": "^1.27.1",
     "dotenv": "^16.6.1",
     "zod": "^4.3.6"
+  },
+  "directories": {
+    "example": "examples",
+    "test": "test"
   }
 }
