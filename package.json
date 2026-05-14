@@ -30,6 +30,7 @@
   ],
   "bin": {
     "coti-private-messaging-init": "examples/init-private-messaging.mjs",
+    "coti-private-messaging-send": "examples/send-message.mjs",
     "coti-private-messaging-read-inbox-smoke": "examples/read-inbox-smoke.mjs",
     "coti-private-messaging-send-read-smoke": "examples/send-read-smoke.mjs",
     "coti-sdk-private-messaging-mcp": "dist/server.js"
@@ -48,6 +49,7 @@
     "build": "tsc -p tsconfig.json",
     "lint": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json",
     "init": "npm run build && node ./examples/init-private-messaging.mjs",
+    "send": "npm run build && node ./examples/send-message.mjs",
     "smoke:read-inbox": "npm run build && node ./examples/read-inbox-smoke.mjs",
     "smoke:send-read": "npm run build && node ./examples/send-read-smoke.mjs",
     "sync:abi": "node ./scripts/sync-abi.mjs",

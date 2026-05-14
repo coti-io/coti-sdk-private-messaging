@@ -17,21 +17,19 @@ TypeScript client for `PrivateMessaging`.
 
 For a copy-paste operator path, use the [Private Messaging Quickstart](https://github.com/coti-io/documentation/blob/main/private-messaging/quickstart.md) in the docs repo. This README is the SDK reference.
 
-For zero-prereq setup, initialize local `.env` first:
+For zero-prereq send-from-zero, run one command:
 
 ```bash
-npx coti-private-messaging-init
-npx coti-private-messaging-send-read-smoke
+npx coti-private-messaging-send --init --to 0xRecipient --text "hello from coti"
 ```
 
 From this SDK repository checkout:
 
 ```bash
-npm run init
-npm run smoke:send-read
+npm run send -- --init --to 0xRecipient --text "hello from coti"
 ```
 
-The init command fills missing `PRIVATE_KEY` and `AES_KEY`, requests a starter grant when the generated wallet has no gas, defaults to mainnet, and leaves existing env values untouched.
+`--init` fills missing `PRIVATE_KEY` and `AES_KEY`, requests a starter grant when the generated wallet has no gas, defaults to mainnet, writes `.env`, and then sends the message in the same command. If you prefer a two-step flow, `coti-private-messaging-init` is still available and the smoke script remains verification only.
 
 Install:
 
@@ -176,17 +174,34 @@ Copy `.env.example` to `.env` in this package if you want to run the MCP server 
 
 ## Send/read smoke test
 
-From an installed project, run init once, then run the smoke test:
+From an installed project, if you want the one-command path:
+
+```bash
+npx coti-private-messaging-send --init --to 0xRecipient --text "hello from coti"
+```
+
+From this SDK repository checkout:
+
+```bash
+npm run send -- --init --to 0xRecipient --text "hello from coti"
+```
+
+If you prefer the split setup/send flow:
 
 ```bash
 npx coti-private-messaging-init
+npx coti-private-messaging-send --to 0xRecipient --text "hello from coti"
+```
+
+If you want verification output instead of a direct send, run the smoke test:
+
+```bash
 npx coti-private-messaging-send-read-smoke
 ```
 
 From this SDK repository checkout:
 
 ```bash
-npm run init
 npm run smoke:send-read
 ```
 
