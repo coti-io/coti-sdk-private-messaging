@@ -1,6 +1,6 @@
 {
   "name": "@coti-io/coti-sdk-private-messaging",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "Apache-2.0",
   "description": "TypeScript SDK for COTI private messaging, encrypted message access, rewards, and MCP tooling.",
   "author": "dev@coti.io",
