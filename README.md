@@ -232,7 +232,7 @@ The SDK ships with built-in defaults for both COTI RPC URLs and the private mess
 
 If you use `createPrivateMessagingClient()` without `contractAddress`, the SDK resolves the address from `network` and defaults to mainnet. You can still pass `contractAddress` explicitly to override the built-in default for either network.
 
-The MCP server exposes these starter-grant tools by default, pointing at the deployed service unless you override it with `STARTER_GRANT_SERVICE_URL`:
+The MCP server exposes these starter-grant tools by default, pointing at `https://agent.coti.io/grant` unless you override it with `STARTER_GRANT_SERVICE_URL`:
 
 - `get_starter_grant_challenge`
 - `get_starter_grant_status`
@@ -241,7 +241,7 @@ The MCP server exposes these starter-grant tools by default, pointing at the dep
 
 The starter-grant flow now supports three patterns: request a challenge directly, inspect current claim status, or use the single-call `request_starter_grant` helper for the current trivial prompt flow. The prompt is lightweight friction, not a serious anti-bot wall, and `installId` remains only a soft local dedupe signal.
 
-The SDK-level starter-grant helpers also default to the deployed service, so `url` is optional unless you want to override it:
+The SDK-level starter-grant helpers also default to `https://agent.coti.io/grant`, so `url` is optional unless you want to override it:
 
 ```ts
 import { requestStarterGrant } from "@coti-io/coti-sdk-private-messaging";
