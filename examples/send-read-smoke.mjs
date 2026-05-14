@@ -26,7 +26,7 @@ function validateRequiredEnv(names) {
   if (missing.length > 0) {
     throw new Error(
       `Missing required environment variable(s): ${missing.join(", ")}. ` +
-        "Run `npm run init` from this SDK checkout, or `npx coti-private-messaging-init` from an installed project. COTI_NETWORK defaults to mainnet; RECIPIENT_ADDRESS is optional."
+        "Run `npm run init` from this SDK checkout, or `npx -p @coti-io/coti-sdk-private-messaging coti-private-messaging-init` from an installed project. COTI_NETWORK defaults to mainnet; RECIPIENT_ADDRESS is optional."
     );
   }
 }

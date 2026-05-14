@@ -46,8 +46,8 @@ console.log(JSON.stringify(
     requestedStarterGrant: Boolean(grantResult),
     starterGrantTransactionHash: grantResult?.transactionHash,
     generatedAesKey,
-    nextCommand: "npx coti-private-messaging-send --to <recipient-address> --text \"hello from coti\"",
-    verificationCommand: "npx coti-private-messaging-send-read-smoke"
+    nextCommand: "npx -p @coti-io/coti-sdk-private-messaging coti-private-messaging-send --to <recipient-address> --text \"hello from coti\"",
+    verificationCommand: "npx -p @coti-io/coti-sdk-private-messaging coti-private-messaging-send-read-smoke"
   },
   null,
   2

@@ -60,7 +60,7 @@ function validateRequiredEnv(names) {
   if (missing.length > 0) {
     throw new Error(
       `Missing required environment variable(s): ${missing.join(", ")}. ` +
-        "Run `npx coti-private-messaging-init` first, or add `--init` to this send command."
+        "Run `npx -p @coti-io/coti-sdk-private-messaging coti-private-messaging-init` first, or add `--init` to this send command."
     );
   }
 }

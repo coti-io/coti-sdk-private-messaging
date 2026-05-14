@@ -20,7 +20,7 @@ For a copy-paste operator path, use the [Private Messaging Quickstart](https://g
 For zero-prereq send-from-zero, run one command:
 
 ```bash
-npx coti-private-messaging-send --init --to 0xRecipient --text "hello from coti"
+npx -p @coti-io/coti-sdk-private-messaging coti-private-messaging-send --init --to 0xRecipient --text "hello from coti"
 ```
 
 From this SDK repository checkout:
@@ -140,7 +140,7 @@ The package also ships a stdio MCP server entrypoint.
 If the SDK is installed in your project, run the package binary:
 
 ```bash
-npx coti-sdk-private-messaging-mcp
+npx -p @coti-io/coti-sdk-private-messaging coti-sdk-private-messaging-mcp
 ```
 
 If you are working from this SDK repository checkout, build first and then run the local server:
@@ -177,7 +177,7 @@ Copy `.env.example` to `.env` in this package if you want to run the MCP server 
 From an installed project, if you want the one-command path:
 
 ```bash
-npx coti-private-messaging-send --init --to 0xRecipient --text "hello from coti"
+npx -p @coti-io/coti-sdk-private-messaging coti-private-messaging-send --init --to 0xRecipient --text "hello from coti"
 ```
 
 From this SDK repository checkout:
@@ -189,14 +189,14 @@ npm run send -- --init --to 0xRecipient --text "hello from coti"
 If you prefer the split setup/send flow:
 
 ```bash
-npx coti-private-messaging-init
-npx coti-private-messaging-send --to 0xRecipient --text "hello from coti"
+npx -p @coti-io/coti-sdk-private-messaging coti-private-messaging-init
+npx -p @coti-io/coti-sdk-private-messaging coti-private-messaging-send --to 0xRecipient --text "hello from coti"
 ```
 
 If you want verification output instead of a direct send, run the smoke test:
 
 ```bash
-npx coti-private-messaging-send-read-smoke
+npx -p @coti-io/coti-sdk-private-messaging coti-private-messaging-send-read-smoke
 ```
 
 From this SDK repository checkout:
@@ -216,7 +216,7 @@ npm run smoke:read-inbox
 From an installed project:
 
 ```bash
-npx coti-private-messaging-read-inbox-smoke
+npx -p @coti-io/coti-sdk-private-messaging coti-private-messaging-read-inbox-smoke
 ```
 
 This lists the receiver inbox and attempts to decrypt messages with the receiver wallet.
