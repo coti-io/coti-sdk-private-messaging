@@ -77,6 +77,7 @@ function parseNumber(value: string | undefined, fallback: number): number {
 }
 
 function resolveStarterGrantServiceConfig(): StarterGrantServiceConfig | undefined {
+  const ref = process.env.STARTER_GRANT_REF?.trim();
   return {
     url: process.env.STARTER_GRANT_SERVICE_URL ?? DEFAULT_STARTER_GRANT_SERVICE_URL,
     timeoutMs: parseNumber(
@@ -85,7 +86,8 @@ function resolveStarterGrantServiceConfig(): StarterGrantServiceConfig | undefin
     ),
     authToken: process.env.STARTER_GRANT_SERVICE_AUTH_TOKEN,
     installIdPath:
-      process.env.STARTER_GRANT_INSTALL_ID_PATH ?? DEFAULT_STARTER_GRANT_INSTALL_ID_PATH
+      process.env.STARTER_GRANT_INSTALL_ID_PATH ?? DEFAULT_STARTER_GRANT_INSTALL_ID_PATH,
+    ...(ref ? { ref } : {})
   };
 }
 
@@ -419,17 +421,26 @@ export async function startMcpServer() {
     }
   );
 
+  const starterGrantRefSchema = {
+    ref: z
+      .string()
+      .min(1)
+      .optional()
+      .describe("Outreach attribution ref (mo_…). Falls back to STARTER_GRANT_REF.")
+  };
+
   server.registerTool(
     "get_starter_grant_challenge",
     {
       title: "Get Starter Grant Challenge",
       description: PRIVATE_MESSAGING_MCP_TOOLS.find(
         (tool) => tool.name === "get_starter_grant_challenge"
-      )?.description
+      )?.description,
+      inputSchema: starterGrantRefSchema
     },
-    async () => {
+    async (args) => {
       return executeTool(() =>
-        invokePrivateMessagingTool(client, "get_starter_grant_challenge", {}, {
+        invokePrivateMessagingTool(client, "get_starter_grant_challenge", args, {
           starterGrantConfig
         })
       );
@@ -463,7 +474,8 @@ export async function startMcpServer() {
       inputSchema: {
         challengeId: z.string().min(1),
         challengeAnswer: z.string().min(1),
-        claimPayload: z.string().min(1)
+        claimPayload: z.string().min(1),
+        ...starterGrantRefSchema
       }
     },
     async (args) => {
@@ -481,11 +493,12 @@ export async function startMcpServer() {
       title: "Request Starter Grant",
       description: PRIVATE_MESSAGING_MCP_TOOLS.find(
         (tool) => tool.name === "request_starter_grant"
-      )?.description
+      )?.description,
+      inputSchema: starterGrantRefSchema
     },
-    async () => {
+    async (args) => {
       return executeTool(() =>
-        invokePrivateMessagingTool(client, "request_starter_grant", {}, {
+        invokePrivateMessagingTool(client, "request_starter_grant", args, {
           starterGrantConfig
         })
       );

@@ -15,6 +15,10 @@ import {
 import {
   bootstrapPrivateMessagingSetup
 } from "./private-messaging-bootstrap.mjs";
+import {
+  recordPrivateMessageAttribution,
+  resolveStarterGrantConfig
+} from "./attribution-helpers.mjs";
 
 function parseArgs() {
   const argv = process.argv.slice(2);
@@ -33,6 +37,7 @@ function parseArgs() {
     skipGrant: flags.has("--skip-grant"),
     to: getValue("--to"),
     text: getValue("--text"),
+    ref: getValue("--ref"),
     gasLimit: getValue("--gas-limit"),
     maxChunkBytes: getValue("--max-chunk-bytes"),
     network: getValue("--network") ?? process.env.COTI_NETWORK ?? "mainnet"
@@ -48,6 +53,7 @@ Options:
   --text <plaintext>       Plaintext message to encrypt and send
   --init                   Create or recover wallet/AES state before sending
   --skip-grant             With --init, skip automatic starter-grant request
+  --ref <attribution-ref>  Attribution ref from outreach (or set STARTER_GRANT_REF)
   --network <network>      Defaults to COTI_NETWORK or mainnet
   --gas-limit <number>     Optional gas limit override
   --max-chunk-bytes <n>    Optional plaintext chunk size override
@@ -117,11 +123,13 @@ const network = resolveNetwork(options.network);
 let wallet;
 let client;
 let bootstrapResult;
+const starterGrantConfig = resolveStarterGrantConfig(undefined, { ref: options.ref });
 
 if (options.init) {
   bootstrapResult = await bootstrapPrivateMessagingSetup({
     networkName: options.network,
-    skipGrant: options.skipGrant
+    skipGrant: options.skipGrant,
+    ref: options.ref
   });
   wallet = bootstrapResult.wallet;
   client = bootstrapResult.client;
@@ -144,6 +152,18 @@ const result = await sendMessage(client, {
   maxChunkBytes: parseOptionalNumber(options.maxChunkBytes, "--max-chunk-bytes")
 });
 
+await recordPrivateMessageAttribution({
+  config: starterGrantConfig,
+  walletAddress: wallet.address,
+  recipient: options.to,
+  transactionHash: result.transactionHash,
+  messageId: result.messageId
+}).catch((error) => {
+  console.error(
+    `Attribution event was not recorded: ${error instanceof Error ? error.message : String(error)}`
+  );
+});
+
 console.log(jsonStringify({
   network: network === CotiNetwork.Mainnet ? "mainnet" : "testnet",
   sender: wallet.address,
@@ -153,6 +173,7 @@ console.log(jsonStringify({
   generatedPrivateKey: bootstrapResult?.generatedPrivateKey,
   generatedAesKey: bootstrapResult?.generatedAesKey,
   starterGrantTransactionHash: bootstrapResult?.grantResult?.transactionHash,
+  attributionRef: options.ref ?? process.env.STARTER_GRANT_REF,
   transactionHash: result.transactionHash,
   messageId: result.messageId
 }));

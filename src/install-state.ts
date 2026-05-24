@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 
 interface PersistedInstallState {
   installId: string;
+  attributionRef?: string;
 }
 
 function resolveHomePath(relativePath: string): string {
@@ -27,14 +28,15 @@ export function resolveInstallIdPath(explicitPath?: string): string {
   );
 }
 
-export async function getOrCreateInstallId(explicitPath?: string): Promise<string> {
-  const installIdPath = resolveInstallIdPath(explicitPath);
-
+async function readInstallState(installIdPath: string): Promise<PersistedInstallState | undefined> {
   try {
     const raw = await readFile(installIdPath, "utf8");
     const parsed = JSON.parse(raw) as Partial<PersistedInstallState>;
     if (parsed.installId && parsed.installId.length > 0) {
-      return parsed.installId;
+      return {
+        installId: parsed.installId,
+        attributionRef: parsed.attributionRef
+      };
     }
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code;
@@ -43,10 +45,56 @@ export async function getOrCreateInstallId(explicitPath?: string): Promise<strin
     }
   }
 
-  const installId = randomUUID();
+  return undefined;
+}
+
+async function writeInstallState(installIdPath: string, state: PersistedInstallState): Promise<void> {
   await mkdir(path.dirname(installIdPath), { recursive: true });
   const tempPath = `${installIdPath}.tmp`;
-  await writeFile(tempPath, JSON.stringify({ installId }, null, 2), "utf8");
+  await writeFile(tempPath, JSON.stringify(state, null, 2), "utf8");
   await rename(tempPath, installIdPath);
+}
+
+export async function getOrCreateInstallId(explicitPath?: string): Promise<string> {
+  const installIdPath = resolveInstallIdPath(explicitPath);
+  const existing = await readInstallState(installIdPath);
+  if (existing) {
+    return existing.installId;
+  }
+
+  const installId = randomUUID();
+  await writeInstallState(installIdPath, { installId });
   return installId;
+}
+
+export async function getStoredAttributionRef(explicitPath?: string): Promise<string | undefined> {
+  const installIdPath = resolveInstallIdPath(explicitPath);
+  const existing = await readInstallState(installIdPath);
+  return existing?.attributionRef;
+}
+
+export async function setStoredAttributionRef(
+  explicitPath: string | undefined,
+  attributionRef: string
+): Promise<void> {
+  const installIdPath = resolveInstallIdPath(explicitPath);
+  const installId = await getOrCreateInstallId(explicitPath);
+  await writeInstallState(installIdPath, { installId, attributionRef });
+}
+
+export async function resolveStarterGrantRef(
+  explicitPath?: string,
+  explicitRef?: string
+): Promise<string | undefined> {
+  const trimmedRef = explicitRef?.trim();
+  if (trimmedRef) {
+    return trimmedRef;
+  }
+
+  const envRef = process.env.STARTER_GRANT_REF?.trim();
+  if (envRef) {
+    return envRef;
+  }
+
+  return await getStoredAttributionRef(explicitPath);
 }

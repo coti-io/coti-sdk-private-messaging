@@ -74,7 +74,8 @@ async function waitForGrant(provider, transactionHash) {
 export async function bootstrapPrivateMessagingSetup({
   networkName,
   envPath = ENV_PATH,
-  skipGrant = false
+  skipGrant = false,
+  ref
 }) {
   const network = resolveNetwork(networkName);
   const currentEnv = await readEnvFile(envPath);
@@ -108,6 +109,12 @@ export async function bootstrapPrivateMessagingSetup({
 
   let grantResult;
   const initialBalance = await getBalance(provider, wallet.address);
+  const starterGrantRef =
+    ref ?? (currentEnv.values.STARTER_GRANT_REF || process.env.STARTER_GRANT_REF);
+  if (starterGrantRef) {
+    updates.STARTER_GRANT_REF = starterGrantRef;
+  }
+
   if (initialBalance === 0n && !skipGrant) {
     grantResult = await requestStarterGrant(client, {
       url: currentEnv.values.STARTER_GRANT_SERVICE_URL || process.env.STARTER_GRANT_SERVICE_URL,
@@ -121,7 +128,8 @@ export async function bootstrapPrivateMessagingSetup({
         ) || undefined,
       installIdPath:
         currentEnv.values.STARTER_GRANT_INSTALL_ID_PATH ||
-        process.env.STARTER_GRANT_INSTALL_ID_PATH
+        process.env.STARTER_GRANT_INSTALL_ID_PATH,
+      ref: starterGrantRef
     });
     await waitForGrant(provider, grantResult.transactionHash);
   }

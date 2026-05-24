@@ -17,6 +17,7 @@ import {
   getEpochUsage,
   getPendingRewards
 } from "./rewards.js";
+import { recordPrivateMessageAttribution } from "./attribution.js";
 import {
   claimStarterGrant,
   getStarterGrantChallenge,
@@ -26,6 +27,14 @@ import {
 import { toJsonValue, type JsonValue } from "./serialize.js";
 import type { StarterGrantServiceConfig } from "./types.js";
 import type { McpToolDefinition, McpToolName } from "./types.js";
+
+const starterGrantRefProperty = {
+  ref: {
+    type: "string",
+    description:
+      "Outreach attribution ref (mo_…). Falls back to STARTER_GRANT_REF or the persisted install ref."
+  }
+} as const;
 
 const paginationSchema = {
   type: "object",
@@ -229,7 +238,7 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
       "Request a one-time starter COTI challenge for the configured wallet and local MCP install.",
     inputSchema: {
       type: "object",
-      properties: {}
+      properties: starterGrantRefProperty
     }
   },
   {
@@ -256,7 +265,8 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
         claimPayload: {
           type: "string",
           description: "Opaque backend-issued payload that will be signed by the configured wallet"
-        }
+        },
+        ...starterGrantRefProperty
       },
       required: ["challengeId", "challengeAnswer", "claimPayload"]
     }
@@ -267,7 +277,7 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
       "Request and immediately submit the current trivial starter-grant challenge in one MCP call.",
     inputSchema: {
       type: "object",
-      properties: {}
+      properties: starterGrantRefProperty
     }
   }
 ] as const;
@@ -308,6 +318,30 @@ function asNumber(value: unknown, fallback: number): number {
   return typeof value === "number" ? value : fallback;
 }
 
+function asOptionalString(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function withStarterGrantRef(
+  config: StarterGrantServiceConfig | undefined,
+  input: Record<string, unknown>
+): StarterGrantServiceConfig | undefined {
+  const ref = asOptionalString(input.ref);
+  if (!ref && !config?.ref) {
+    return config;
+  }
+
+  return {
+    ...config,
+    ref: ref ?? config?.ref
+  };
+}
+
 export async function invokePrivateMessagingTool(
   client: PrivateMessagingClient,
   toolName: McpToolName,
@@ -318,25 +352,44 @@ export async function invokePrivateMessagingTool(
   }
 ): Promise<JsonValue> {
   const input = asObject(rawInput);
+  const starterGrantConfig = withStarterGrantRef(options?.starterGrantConfig, input);
 
   switch (toolName) {
-    case "send_message":
-      return toJsonValue(
-        await sendMessage(client, {
-          to: asString(input.to, "to"),
-          plaintext: asString(input.plaintext, "plaintext"),
-          maxChunkBytes:
-            input.maxChunkBytes === undefined
-              ? undefined
-              : asNumber(input.maxChunkBytes, 24),
-          gasLimit:
-            input.gasLimit === undefined ? undefined : asIdLike(input.gasLimit, "gasLimit"),
-          gasBufferBps:
-            input.gasBufferBps === undefined
-              ? undefined
-              : asNumber(input.gasBufferBps, 2000)
-        })
-      );
+    case "send_message": {
+      const recipient = asString(input.to, "to");
+      const result = await sendMessage(client, {
+        to: recipient,
+        plaintext: asString(input.plaintext, "plaintext"),
+        maxChunkBytes:
+          input.maxChunkBytes === undefined
+            ? undefined
+            : asNumber(input.maxChunkBytes, 24),
+        gasLimit:
+          input.gasLimit === undefined ? undefined : asIdLike(input.gasLimit, "gasLimit"),
+        gasBufferBps:
+          input.gasBufferBps === undefined
+            ? undefined
+            : asNumber(input.gasBufferBps, 2000)
+      });
+      const walletAddress = await client.getAddress();
+      await recordPrivateMessageAttribution(
+        starterGrantConfig,
+        {
+          walletAddress,
+          recipient,
+          transactionHash: result.transactionHash,
+          messageId: String(result.messageId),
+          venue: "mcp"
+        },
+        options?.fetchImpl
+      ).catch((error) => {
+        console.error(
+          "Attribution event was not recorded:",
+          error instanceof Error ? error.message : String(error)
+        );
+      });
+      return toJsonValue(result);
+    }
     case "read_message":
       return toJsonValue(
         await readMessage(client, {
@@ -416,17 +469,17 @@ export async function invokePrivateMessagingTool(
       });
     case "get_starter_grant_challenge":
       return toJsonValue(
-        await getStarterGrantChallenge(client, options?.starterGrantConfig, options?.fetchImpl)
+        await getStarterGrantChallenge(client, starterGrantConfig, options?.fetchImpl)
       );
     case "get_starter_grant_status":
       return toJsonValue(
-        await getStarterGrantStatus(client, options?.starterGrantConfig, options?.fetchImpl)
+        await getStarterGrantStatus(client, starterGrantConfig, options?.fetchImpl)
       );
     case "claim_starter_grant":
       return toJsonValue(
         await claimStarterGrant(
           client,
-          options?.starterGrantConfig,
+          starterGrantConfig,
           {
             challengeId: asString(input.challengeId, "challengeId"),
             challengeAnswer: asString(input.challengeAnswer, "challengeAnswer"),
@@ -437,7 +490,7 @@ export async function invokePrivateMessagingTool(
       );
     case "request_starter_grant":
       return toJsonValue(
-        await requestStarterGrant(client, options?.starterGrantConfig, options?.fetchImpl)
+        await requestStarterGrant(client, starterGrantConfig, options?.fetchImpl)
       );
   }
 

@@ -1,5 +1,9 @@
 import type { PrivateMessagingClient } from "./client.js";
-import { getOrCreateInstallId } from "./install-state.js";
+import {
+  getOrCreateInstallId,
+  resolveStarterGrantRef,
+  setStoredAttributionRef
+} from "./install-state.js";
 import type {
   ClaimStarterGrantRequest,
   ClaimStarterGrantResult,
@@ -14,15 +18,33 @@ export const DEFAULT_STARTER_GRANT_SERVICE_TIMEOUT_MS = 15_000;
 export const DEFAULT_STARTER_GRANT_INSTALL_ID_PATH =
   "~/.config/coti-sdk-private-messaging/install-state.json";
 
-function requireStarterGrantConfig(
+async function resolveStarterGrantConfig(
   config: StarterGrantServiceConfig | undefined
-): Required<Pick<StarterGrantServiceConfig, "url" | "timeoutMs" | "installIdPath">> &
-  Pick<StarterGrantServiceConfig, "authToken"> {
+): Promise<
+  Required<Pick<StarterGrantServiceConfig, "url" | "timeoutMs" | "installIdPath">> &
+    Pick<StarterGrantServiceConfig, "authToken" | "ref">
+> {
+  const installIdPath = config?.installIdPath ?? DEFAULT_STARTER_GRANT_INSTALL_ID_PATH;
   return {
     url: config?.url ?? DEFAULT_STARTER_GRANT_SERVICE_URL,
     timeoutMs: config?.timeoutMs ?? DEFAULT_STARTER_GRANT_SERVICE_TIMEOUT_MS,
     authToken: config?.authToken,
-    installIdPath: config?.installIdPath ?? DEFAULT_STARTER_GRANT_INSTALL_ID_PATH
+    installIdPath,
+    ref: await resolveStarterGrantRef(installIdPath, config?.ref)
+  };
+}
+
+function buildStarterGrantAttributionBody(
+  config: Pick<StarterGrantServiceConfig, "ref">,
+  body: Record<string, unknown>
+): Record<string, unknown> {
+  if (!config.ref) {
+    return body;
+  }
+
+  return {
+    ...body,
+    ref: config.ref
   };
 }
 
@@ -61,16 +83,16 @@ export async function getStarterGrantChallenge(
   configInput: StarterGrantServiceConfig | undefined,
   fetchImpl?: typeof fetch
 ): Promise<GetStarterGrantChallengeResult> {
-  const config = requireStarterGrantConfig(configInput);
+  const config = await resolveStarterGrantConfig(configInput);
   const walletAddress = await client.getAddress();
   const installId = await getOrCreateInstallId(config.installIdPath);
 
   return postJson<GetStarterGrantChallengeResult>(
     `${config.url.replace(/\/+$/, "")}/challenge`,
-    {
+    buildStarterGrantAttributionBody(config, {
       walletAddress,
       installId
-    },
+    }),
     config,
     fetchImpl
   );
@@ -81,7 +103,7 @@ export async function getStarterGrantStatus(
   configInput: StarterGrantServiceConfig | undefined,
   fetchImpl?: typeof fetch
 ): Promise<GetStarterGrantStatusResult> {
-  const config = requireStarterGrantConfig(configInput);
+  const config = await resolveStarterGrantConfig(configInput);
   const walletAddress = await client.getAddress();
   const installId = await getOrCreateInstallId(config.installIdPath);
 
@@ -102,21 +124,21 @@ export async function claimStarterGrant(
   input: ClaimStarterGrantRequest,
   fetchImpl?: typeof fetch
 ): Promise<ClaimStarterGrantResult> {
-  const config = requireStarterGrantConfig(configInput);
+  const config = await resolveStarterGrantConfig(configInput);
   const walletAddress = await client.getAddress();
   const installId = await getOrCreateInstallId(config.installIdPath);
   const signature = await client.signMessage(input.claimPayload);
 
   return postJson<ClaimStarterGrantResult>(
     `${config.url.replace(/\/+$/, "")}/claim`,
-    {
+    buildStarterGrantAttributionBody(config, {
       challengeId: input.challengeId,
       walletAddress,
       installId,
       challengeAnswer: input.challengeAnswer,
       claimPayload: input.claimPayload,
       signature
-    },
+    }),
     config,
     fetchImpl
   );
@@ -145,6 +167,7 @@ export async function requestStarterGrant(
   configInput: StarterGrantServiceConfig | undefined,
   fetchImpl?: typeof fetch
 ): Promise<RequestStarterGrantResult> {
+  const config = await resolveStarterGrantConfig(configInput);
   const challenge = await getStarterGrantChallenge(client, configInput, fetchImpl);
   const claim = await claimStarterGrant(
     client,
@@ -156,6 +179,10 @@ export async function requestStarterGrant(
     },
     fetchImpl
   );
+
+  if (config.ref) {
+    await setStoredAttributionRef(config.installIdPath, config.ref);
+  }
 
   return {
     ...claim,

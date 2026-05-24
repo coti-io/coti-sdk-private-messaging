@@ -17,19 +17,19 @@ TypeScript client for `PrivateMessaging`.
 
 For a copy-paste operator path, use the [Private Messaging Quickstart](https://github.com/coti-io/documentation/blob/main/private-messaging/quickstart.md) in the docs repo. This README is the SDK reference.
 
-For zero-prereq send-from-zero, run one command:
+For zero-prereq send-from-zero, run one command (include `--ref` when the user came from outreach):
 
 ```bash
-npx -p @coti-io/coti-sdk-private-messaging coti-private-messaging-send --init --to 0xRecipient --text "hello from coti"
+npx -p @coti-io/coti-sdk-private-messaging coti-private-messaging-send --init --to 0xRecipient --text "hello from coti" --ref mo_yourRef
 ```
 
 From this SDK repository checkout:
 
 ```bash
-npm run send -- --init --to 0xRecipient --text "hello from coti"
+npm run send -- --init --to 0xRecipient --text "hello from coti" --ref mo_yourRef
 ```
 
-`--init` fills missing `PRIVATE_KEY` and `AES_KEY`, requests a starter grant when the generated wallet has no gas, defaults to mainnet, writes `.env`, and then sends the message in the same command. If you prefer a two-step flow, `coti-private-messaging-init` is still available and the smoke script remains verification only.
+`--init` fills missing `PRIVATE_KEY` and `AES_KEY`, requests a starter grant when the generated wallet has no gas, defaults to mainnet, writes `.env`, and then sends the message in the same command. Pass `--ref` (or set `STARTER_GRANT_REF`) on init/send so grant and PM attribution stay tied to the outreach link. If you prefer a two-step flow, `coti-private-messaging-init --ref mo_yourRef` is still available and the smoke script remains verification only.
 
 Install:
 
@@ -169,6 +169,7 @@ Optional starter-grant service config overrides:
 - `STARTER_GRANT_SERVICE_TIMEOUT_MS`
 - `STARTER_GRANT_SERVICE_AUTH_TOKEN`
 - `STARTER_GRANT_INSTALL_ID_PATH`
+- `STARTER_GRANT_REF` (outreach attribution ref; also accepted via `--ref` on CLI tools)
 
 Copy `.env.example` to `.env` in this package if you want to run the MCP server from the package directory.
 

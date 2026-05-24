@@ -115,6 +115,7 @@ export interface StarterGrantServiceConfig {
   timeoutMs?: number;
   authToken?: string;
   installIdPath?: string;
+  ref?: string;
 }
 
 export interface GetStarterGrantChallengeResult {

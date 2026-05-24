@@ -39,6 +39,23 @@ export {
   requestStarterGrant
 } from "./starter-grants.js";
 export {
+  recordAttributionEvent,
+  recordPrivateMessageAttribution,
+  resolveAttributionRefForInstall
+} from "./attribution.js";
+export type {
+  AttributionEventType,
+  RecordAttributionEventInput,
+  RecordPrivateMessageAttributionInput
+} from "./attribution.js";
+export {
+  getOrCreateInstallId,
+  getStoredAttributionRef,
+  resolveInstallIdPath,
+  resolveStarterGrantRef,
+  setStoredAttributionRef
+} from "./install-state.js";
+export {
   PRIVATE_MESSAGING_MCP_TOOLS,
   invokePrivateMessagingTool
 } from "./mcp.js";
