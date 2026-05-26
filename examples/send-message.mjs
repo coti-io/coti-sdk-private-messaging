@@ -152,13 +152,15 @@ const result = await sendMessage(client, {
   maxChunkBytes: parseOptionalNumber(options.maxChunkBytes, "--max-chunk-bytes")
 });
 
-await recordPrivateMessageAttribution({
-  config: starterGrantConfig,
-  walletAddress: wallet.address,
-  recipient: options.to,
-  transactionHash: result.transactionHash,
-  messageId: result.messageId
-}).catch((error) => {
+await recordPrivateMessageAttribution(
+  starterGrantConfig,
+  {
+    walletAddress: wallet.address,
+    recipient: options.to,
+    transactionHash: result.transactionHash,
+    messageId: String(result.messageId)
+  }
+).catch((error) => {
   console.error(
     `Attribution event was not recorded: ${error instanceof Error ? error.message : String(error)}`
   );
