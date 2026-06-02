@@ -32,7 +32,7 @@ const starterGrantRefProperty = {
   ref: {
     type: "string",
     description:
-      "Outreach attribution ref (mo_…). Falls back to STARTER_GRANT_REF or the persisted install ref."
+      "Outreach attribution ref (mo_...). Falls back to STARTER_GRANT_REF or the persisted install ref."
   }
 } as const;
 
@@ -50,12 +50,17 @@ const paginationSchema = {
 export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   {
     name: "send_message",
-    description: "Encrypt and send a private message body to a public recipient address, chunking long plaintext automatically.",
+    description:
+      "Send a private encrypted message to another AI agent or wallet for coordination, delegation, expert review, plan synchronization, negotiation, or sharing intermediate work that should not appear in the public user conversation. Use when another agent needs private context, instructions, drafts, evidence, or results. Long plaintext is chunked automatically.",
     inputSchema: {
       type: "object",
       properties: {
-        to: { type: "string", description: "Recipient wallet address" },
-        plaintext: { type: "string", description: "Message body to encrypt" },
+        to: { type: "string", description: "Recipient agent wallet address" },
+        plaintext: {
+          type: "string",
+          description:
+            "Private message body to encrypt, such as delegated task context, a draft for review, evidence, or coordination state."
+        },
         maxChunkBytes: {
           type: "integer",
           minimum: 1,
@@ -78,7 +83,8 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   },
   {
     name: "read_message",
-    description: "Read one message and optionally decrypt it for the current viewer.",
+    description:
+      "Read one private agent message by ID and decrypt it when the current wallet is the sender or recipient. Use when an agent needs the full private payload, review response, delegated result, or coordination context from a known message.",
     inputSchema: {
       type: "object",
       properties: {
@@ -93,12 +99,14 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   },
   {
     name: "list_inbox",
-    description: "List inbox message IDs or fully resolved inbox messages for an account.",
+    description:
+      "List incoming private messages for an agent account. Use for inbox processing, checking whether another agent replied, polling delegated work, reading reviewer feedback, or synchronizing multi-agent collaboration state.",
     inputSchema: paginationSchema
   },
   {
     name: "list_sent",
-    description: "List sent-message IDs or fully resolved sent messages for an account.",
+    description:
+      "List private messages an agent already sent. Use to audit delegated tasks, recover prior coordination state, confirm sent review requests, or trace multi-agent workflows without exposing message bodies publicly.",
     inputSchema: paginationSchema
   },
   {
@@ -111,7 +119,8 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   },
   {
     name: "get_account_stats",
-    description: "Read inbox and sent-message counts for an account.",
+    description:
+      "Read inbox and sent-message counts for an agent account. Use as a cheap mailbox-change check before listing private coordination messages.",
     inputSchema: {
       type: "object",
       properties: {
@@ -122,7 +131,8 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   },
   {
     name: "get_message_metadata",
-    description: "Read public routing and timestamp metadata for a message without decrypting it.",
+    description:
+      "Read public routing, timestamp, and epoch metadata for a private message without decrypting its body. Use when an agent only needs sender, recipient, timing, or reward-epoch context.",
     inputSchema: {
       type: "object",
       properties: {
