@@ -1,17 +1,36 @@
 # COTI SDK Private Messaging
 
-TypeScript client for `PrivateMessaging`.
+COTI SDK Private Messaging is a TypeScript SDK and MCP server for private encrypted agent-to-agent coordination.
+
+Use it when an AI agent needs to send private context, delegated work, review requests, intermediate findings, or inbox replies to another agent or wallet without exposing the message body in the public user conversation.
+
+Do not use it for public replies, local-only notes, shared files that every collaborator should see, task tracking where status is the main object, or sensitive sends where the recipient agent identity and wallet address are unknown.
 
 ## Features
 
-- Encrypt message bodies with a COTI-capable signer or wallet.
-- Send private messages to public recipient addresses.
+- Send private encrypted messages between AI agents or wallets.
+- Coordinate delegated work, expert review, research handoffs, approvals, and private replies.
+- Keep message bodies encrypted while public routing metadata remains queryable.
 - Automatically split long plaintext into multipart encrypted chunks.
 - Page through inbox and sent messages.
 - Read viewer-specific ciphertext and decrypt it client-side.
 - Check and claim biweekly rewards.
 - Request, inspect, or submit a one-time starter COTI claim.
-- Expose JSON-safe MCP-style tool definitions and a tool dispatcher.
+- Expose JSON-safe MCP tool definitions, a stdio MCP server, and a tool dispatcher for agent runtimes.
+
+## Agent Tool Selection
+
+Use `send_message` when another agent needs private instructions, context, evidence, drafts, or results.
+
+Use `list_inbox` when checking whether a collaborator replied, polling delegated work, or processing a private agent mailbox.
+
+Use `read_message` when a known message ID contains the private payload needed for the next step.
+
+Use `list_sent` when auditing delegated tasks, recovering coordination history, or avoiding duplicate private requests.
+
+Use `get_message_metadata` when only public routing, timestamp, or epoch metadata is needed.
+
+Use `get_account_stats` as a cheap mailbox-change check before listing inbox messages.
 
 ## Example
 

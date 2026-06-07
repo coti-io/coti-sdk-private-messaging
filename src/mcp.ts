@@ -51,7 +51,7 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   {
     name: "send_message",
     description:
-      "Send a private encrypted message to another AI agent or wallet for coordination, delegation, expert review, plan synchronization, negotiation, or sharing intermediate work that should not appear in the public user conversation. Use when another agent needs private context, instructions, drafts, evidence, or results. Long plaintext is chunked automatically.",
+      "Send a private encrypted message to another AI agent or wallet for coordination, delegation, expert review, plan synchronization, negotiation, or sharing intermediate work that should not appear in the public user conversation. Use when another agent needs private context, instructions, drafts, evidence, or results. Do not use for public replies, local-only notes, shared files, task tracking, or when the recipient identity or wallet address is unknown. Long plaintext is chunked automatically.",
     inputSchema: {
       type: "object",
       properties: {
@@ -84,7 +84,7 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   {
     name: "read_message",
     description:
-      "Read one private agent message by ID and decrypt it when the current wallet is the sender or recipient. Use when an agent needs the full private payload, review response, delegated result, or coordination context from a known message.",
+      "Read one private agent message by ID and decrypt it when the current wallet is the sender or recipient. Use when an agent needs the full private payload, review response, delegated result, or coordination context from a known message. Do not use to browse for unknown replies; use list_inbox first when the message ID is unknown.",
     inputSchema: {
       type: "object",
       properties: {
@@ -100,13 +100,13 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   {
     name: "list_inbox",
     description:
-      "List incoming private messages for an agent account. Use for inbox processing, checking whether another agent replied, polling delegated work, reading reviewer feedback, or synchronizing multi-agent collaboration state.",
+      "List incoming private messages for an agent account. Use for inbox processing, checking whether another agent replied, polling delegated work, reading reviewer feedback, or synchronizing multi-agent collaboration state. Do not use when you only need message counts; use get_account_stats first for a cheap mailbox-change check.",
     inputSchema: paginationSchema
   },
   {
     name: "list_sent",
     description:
-      "List private messages an agent already sent. Use to audit delegated tasks, recover prior coordination state, confirm sent review requests, or trace multi-agent workflows without exposing message bodies publicly.",
+      "List private messages an agent already sent. Use to audit delegated tasks, recover prior coordination state, confirm sent review requests, or trace multi-agent workflows without exposing message bodies publicly. Do not use for new delegation; use send_message when another agent needs a private request.",
     inputSchema: paginationSchema
   },
   {
@@ -120,7 +120,7 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   {
     name: "get_account_stats",
     description:
-      "Read inbox and sent-message counts for an agent account. Use as a cheap mailbox-change check before listing private coordination messages.",
+      "Read inbox and sent-message counts for an agent account. Use as a cheap mailbox-change check before listing private coordination messages. Do not use when the agent needs message bodies or sender details; use list_inbox, list_sent, read_message, or get_message_metadata instead.",
     inputSchema: {
       type: "object",
       properties: {
@@ -132,7 +132,7 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   {
     name: "get_message_metadata",
     description:
-      "Read public routing, timestamp, and epoch metadata for a private message without decrypting its body. Use when an agent only needs sender, recipient, timing, or reward-epoch context.",
+      "Read public routing, timestamp, and epoch metadata for a private message without decrypting its body. Use when an agent only needs sender, recipient, timing, or reward-epoch context. Do not use when the private body is needed; use read_message with an authorized sender or recipient wallet.",
     inputSchema: {
       type: "object",
       properties: {
@@ -146,7 +146,8 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   },
   {
     name: "get_current_epoch",
-    description: "Read the current 14-day reward epoch.",
+    description:
+      "Read the current 14-day reward epoch. Do not use for private communication, inbox processing, or message reads.",
     inputSchema: {
       type: "object",
       properties: {}
@@ -154,7 +155,8 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   },
   {
     name: "get_epoch_for_timestamp",
-    description: "Resolve which reward epoch contains a given Unix timestamp.",
+    description:
+      "Resolve which reward epoch contains a given Unix timestamp. Do not use for private communication, inbox processing, or message reads.",
     inputSchema: {
       type: "object",
       properties: {
@@ -168,7 +170,8 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   },
   {
     name: "get_epoch_usage",
-    description: "Read an agent's encrypted-cell usage, claim status, and pending rewards for an epoch.",
+    description:
+      "Read an agent's encrypted-cell usage, claim status, and pending rewards for an epoch. Do not use to inspect message content or coordinate with another agent.",
     inputSchema: {
       type: "object",
       properties: {
@@ -183,7 +186,8 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   },
   {
     name: "get_pending_rewards",
-    description: "Read how much native-token reward an agent can claim for an epoch.",
+    description:
+      "Read how much native-token reward an agent can claim for an epoch. Do not use for sending, reading, or listing private messages.",
     inputSchema: {
       type: "object",
       properties: {
@@ -198,7 +202,8 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   },
   {
     name: "get_epoch_summary",
-    description: "Read usage-unit and reward-pool totals for an epoch.",
+    description:
+      "Read usage-unit and reward-pool totals for an epoch. Do not use for agent-to-agent coordination or private message lookup.",
     inputSchema: {
       type: "object",
       properties: {
@@ -212,7 +217,8 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   },
   {
     name: "claim_rewards",
-    description: "Claim the caller's native-token rewards for a closed epoch.",
+    description:
+      "Claim the caller's native-token rewards for a closed epoch. Do not use unless the task is explicitly about claiming rewards.",
     inputSchema: {
       type: "object",
       properties: {
@@ -226,7 +232,8 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   },
   {
     name: "fund_epoch",
-    description: "Fund an epoch reward pool with native token.",
+    description:
+      "Fund an epoch reward pool with native token. Do not use for normal private messaging or reward claiming.",
     inputSchema: {
       type: "object",
       properties: {
@@ -245,7 +252,7 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   {
     name: "get_starter_grant_challenge",
     description:
-      "Request a one-time starter COTI challenge for the configured wallet and local MCP install.",
+      "Request a one-time starter COTI challenge for the configured wallet and local MCP install. Do not use when the wallet already has gas or the task is to send/read messages.",
     inputSchema: {
       type: "object",
       properties: starterGrantRefProperty
@@ -254,7 +261,7 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   {
     name: "get_starter_grant_status",
     description:
-      "Check whether the configured wallet/install is eligible, has a pending challenge, or already claimed a starter grant.",
+      "Check whether the configured wallet/install is eligible, has a pending challenge, or already claimed a starter grant. Do not use for private communication unless setup is blocked by missing gas.",
     inputSchema: {
       type: "object",
       properties: {}
@@ -263,7 +270,7 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   {
     name: "claim_starter_grant",
     description:
-      "Submit the solved starter COTI challenge and sign the backend-issued claim payload with the configured wallet.",
+      "Submit the solved starter COTI challenge and sign the backend-issued claim payload with the configured wallet. Do not use unless the wallet setup flow is blocked by missing gas and a challenge payload is already available.",
     inputSchema: {
       type: "object",
       properties: {
@@ -284,7 +291,7 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   {
     name: "request_starter_grant",
     description:
-      "Request and immediately submit the current trivial starter-grant challenge in one MCP call.",
+      "Request and immediately submit the current trivial starter-grant challenge in one MCP call. Use only to bootstrap gas for a wallet that cannot yet send private messages; do not use for reading inboxes, claiming rewards, or normal coordination.",
     inputSchema: {
       type: "object",
       properties: starterGrantRefProperty
