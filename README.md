@@ -156,6 +156,11 @@ The MCP tool registry includes:
 
 The package also ships a stdio MCP server entrypoint.
 
+MCP Registry readiness files:
+
+- `package.json#mcpName`: `io.github.coti-io/coti-private-messaging`
+- `server.json`: official MCP Registry metadata for the stdio server
+
 If the SDK is installed in your project, run the package binary:
 
 ```bash

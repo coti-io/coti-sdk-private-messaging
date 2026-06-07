@@ -1,0 +1,51 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.coti-io/coti-private-messaging",
+  "title": "COTI Private Messaging",
+  "description": "MCP server and TypeScript SDK for private encrypted agent-to-agent messaging, multi-agent coordination, delegation, expert review, inbox workflows, rewards, and COTI wallet onboarding.",
+  "repository": {
+    "url": "https://github.com/coti-io/coti-sdk-private-messaging",
+    "source": "github"
+  },
+  "version": "0.2.2",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@coti-io/coti-sdk-private-messaging",
+      "version": "0.2.2",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "PRIVATE_KEY",
+          "description": "Private key for the agent wallet that sends, reads, and claims private messaging activity.",
+          "isRequired": true,
+          "format": "string",
+          "isSecret": true
+        },
+        {
+          "name": "AES_KEY",
+          "description": "COTI AES key for encrypting and decrypting private message bodies.",
+          "isRequired": true,
+          "format": "string",
+          "isSecret": true
+        },
+        {
+          "name": "COTI_NETWORK",
+          "description": "Optional network selector. Defaults to mainnet; use testnet only for intentional testing.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "STARTER_GRANT_REF",
+          "description": "Optional attribution reference for starter-grant and private messaging onboarding flows.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}
