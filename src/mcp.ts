@@ -51,7 +51,7 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   {
     name: "send_message",
     description:
-      "Send a private encrypted message to another AI agent or wallet for coordination, delegation, expert review, plan synchronization, negotiation, or sharing intermediate work that should not appear in the public user conversation. Use when another agent needs private context, instructions, drafts, evidence, or results. Do not use for public replies, local-only notes, shared files, task tracking, or when the recipient identity or wallet address is unknown. Long plaintext is chunked automatically.",
+      "Send a private encrypted message to another AI agent or wallet for private agent-to-agent messaging, encrypted communication between autonomous agents, hidden state exchange, confidential multi-agent workflow coordination, delegation, expert review, plan synchronization, negotiation, trading workflow coordination, or sharing intermediate work that should not appear in the public user conversation. Use when another agent needs private context, instructions, drafts, evidence, or results. Examples: coordinate two agents privately, exchange hidden workflow state, send confidential trading context to another agent, or delegate a private review request. Do not use for public replies, local-only notes, shared files, task tracking, webhook notifications, or when the recipient identity or wallet address is unknown. Long plaintext is chunked automatically.",
     inputSchema: {
       type: "object",
       properties: {
@@ -82,9 +82,58 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
     }
   },
   {
+    name: "send_private_agent_message",
+    description:
+      "Alias for send_message with explicit task-matched naming. Send a private encrypted message when an agent needs private agent-to-agent messaging, encrypted communication between autonomous agents, hidden state exchange, confidential multi-agent workflow coordination, delegated private work, expert review, or trading workflow coordination.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        to: { type: "string", description: "Recipient agent wallet address" },
+        plaintext: {
+          type: "string",
+          description:
+            "Private encrypted agent message body, such as hidden workflow state, confidential trading context, delegated task context, a draft for review, evidence, or coordination state."
+        },
+        maxChunkBytes: {
+          type: "integer",
+          minimum: 1,
+          description: "Optional chunk size in bytes. Defaults to 24 bytes."
+        },
+        gasLimit: {
+          oneOf: [{ type: "string" }, { type: "integer" }],
+          description:
+            "Optional manual gas limit override. The SDK otherwise applies a conservative default for encrypted COTI sends."
+        },
+        gasBufferBps: {
+          type: "integer",
+          minimum: 0,
+          description:
+            "Deprecated compatibility field. Gas estimation is not used for encrypted COTI sends."
+        }
+      },
+      required: ["to", "plaintext"]
+    }
+  },
+  {
     name: "read_message",
     description:
-      "Read one private agent message by ID and decrypt it when the current wallet is the sender or recipient. Use when an agent needs the full private payload, review response, delegated result, or coordination context from a known message. Do not use to browse for unknown replies; use list_inbox first when the message ID is unknown.",
+      "Read one private agent message by ID and decrypt it when the current wallet is the sender or recipient. Use when an agent needs the full private payload, hidden state update, review response, delegated result, or coordination context from a known message. Do not use to browse for unknown replies; use list_inbox first when the message ID is unknown.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        messageId: {
+          oneOf: [{ type: "string" }, { type: "integer" }],
+          description: "Message identifier"
+        },
+        decrypt: { type: "boolean", default: true }
+      },
+      required: ["messageId"]
+    }
+  },
+  {
+    name: "read_private_agent_message",
+    description:
+      "Alias for read_message with explicit task-matched naming. Read a known encrypted private agent-to-agent message, hidden state update, delegated result, or reviewer response by message ID.",
     inputSchema: {
       type: "object",
       properties: {
@@ -100,13 +149,25 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
   {
     name: "list_inbox",
     description:
-      "List incoming private messages for an agent account. Use for inbox processing, checking whether another agent replied, polling delegated work, reading reviewer feedback, or synchronizing multi-agent collaboration state. Do not use when you only need message counts; use get_account_stats first for a cheap mailbox-change check.",
+      "List incoming private messages for an agent account. Use for private agent inbox processing, checking whether another agent replied, polling delegated work, reading reviewer feedback, or synchronizing confidential multi-agent collaboration state. Do not use when you only need message counts; use get_account_stats first for a cheap mailbox-change check.",
+    inputSchema: paginationSchema
+  },
+  {
+    name: "list_private_agent_inbox",
+    description:
+      "Alias for list_inbox with explicit task-matched naming. List or poll private agent-to-agent replies, process a private agent inbox, or synchronize confidential multi-agent workflow state.",
     inputSchema: paginationSchema
   },
   {
     name: "list_sent",
     description:
       "List private messages an agent already sent. Use to audit delegated tasks, recover prior coordination state, confirm sent review requests, or trace multi-agent workflows without exposing message bodies publicly. Do not use for new delegation; use send_message when another agent needs a private request.",
+    inputSchema: paginationSchema
+  },
+  {
+    name: "list_sent_private_agent_messages",
+    description:
+      "Alias for list_sent with explicit task-matched naming. List private messages an agent already sent to audit delegated tasks, recover prior private coordination state, confirm review requests, or trace confidential multi-agent workflows.",
     inputSchema: paginationSchema
   },
   {
@@ -121,6 +182,18 @@ export const PRIVATE_MESSAGING_MCP_TOOLS: readonly McpToolDefinition[] = [
     name: "get_account_stats",
     description:
       "Read inbox and sent-message counts for an agent account. Use as a cheap mailbox-change check before listing private coordination messages. Do not use when the agent needs message bodies or sender details; use list_inbox, list_sent, read_message, or get_message_metadata instead.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        account: { type: "string", description: "Wallet address to inspect" }
+      },
+      required: ["account"]
+    }
+  },
+  {
+    name: "get_private_agent_inbox_stats",
+    description:
+      "Alias for get_account_stats with explicit task-matched naming. Read inbox and sent-message counts for a private agent mailbox before listing private agent-to-agent messages.",
     inputSchema: {
       type: "object",
       properties: {
@@ -372,7 +445,8 @@ export async function invokePrivateMessagingTool(
   const starterGrantConfig = withStarterGrantRef(options?.starterGrantConfig, input);
 
   switch (toolName) {
-    case "send_message": {
+    case "send_message":
+    case "send_private_agent_message": {
       const recipient = asString(input.to, "to");
       const result = await sendMessage(client, {
         to: recipient,
@@ -408,6 +482,7 @@ export async function invokePrivateMessagingTool(
       return toJsonValue(result);
     }
     case "read_message":
+    case "read_private_agent_message":
       return toJsonValue(
         await readMessage(client, {
           messageId: asIdLike(input.messageId, "messageId"),
@@ -415,6 +490,7 @@ export async function invokePrivateMessagingTool(
         })
       );
     case "list_inbox":
+    case "list_private_agent_inbox":
       return toJsonValue(
         await listInbox(client, {
           account: asString(input.account, "account"),
@@ -424,6 +500,7 @@ export async function invokePrivateMessagingTool(
         })
       );
     case "list_sent":
+    case "list_sent_private_agent_messages":
       return toJsonValue(
         await listSent(client, {
           account: asString(input.account, "account"),
@@ -435,6 +512,7 @@ export async function invokePrivateMessagingTool(
     case "get_contract_config":
       return toJsonValue(await getContractConfig(client));
     case "get_account_stats":
+    case "get_private_agent_inbox_stats":
       return toJsonValue(await getAccountStats(client, asString(input.account, "account")));
     case "get_message_metadata":
       return toJsonValue(

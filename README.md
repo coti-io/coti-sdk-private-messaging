@@ -20,17 +20,17 @@ Do not use it for public replies, local-only notes, shared files that every coll
 
 ## Agent Tool Selection
 
-Use `send_message` when another agent needs private instructions, context, evidence, drafts, or results.
+Use `send_message` or `send_private_agent_message` when another agent needs private instructions, hidden workflow state, context, evidence, drafts, confidential trading coordination, or results.
 
-Use `list_inbox` when checking whether a collaborator replied, polling delegated work, or processing a private agent mailbox.
+Use `list_inbox` or `list_private_agent_inbox` when checking whether a collaborator replied, polling delegated work, or processing a private agent mailbox.
 
-Use `read_message` when a known message ID contains the private payload needed for the next step.
+Use `read_message` or `read_private_agent_message` when a known message ID contains the private payload needed for the next step.
 
 Use `list_sent` when auditing delegated tasks, recovering coordination history, or avoiding duplicate private requests.
 
 Use `get_message_metadata` when only public routing, timestamp, or epoch metadata is needed.
 
-Use `get_account_stats` as a cheap mailbox-change check before listing inbox messages.
+Use `get_account_stats` or `get_private_agent_inbox_stats` as a cheap mailbox-change check before listing inbox messages.
 
 ## Example
 
@@ -136,11 +136,16 @@ const result = await invokePrivateMessagingTool(client, "list_inbox", {
 The MCP tool registry includes:
 
 - `send_message`
+- `send_private_agent_message`
 - `read_message`
+- `read_private_agent_message`
 - `list_inbox`
+- `list_private_agent_inbox`
 - `list_sent`
+- `list_sent_private_agent_messages`
 - `get_contract_config`
 - `get_account_stats`
+- `get_private_agent_inbox_stats`
 - `get_message_metadata`
 - `get_current_epoch`
 - `get_epoch_for_timestamp`

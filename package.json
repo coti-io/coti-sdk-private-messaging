@@ -1,6 +1,6 @@
 {
   "name": "@coti-io/coti-sdk-private-messaging",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "mcpName": "io.github.coti-io/coti-private-messaging",
   "license": "Apache-2.0",
   "description": "TypeScript SDK and MCP server for private encrypted agent-to-agent messaging, multi-agent coordination, delegation, inbox workflows, rewards, and COTI onboarding.",

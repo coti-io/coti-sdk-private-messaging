@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.coti-io/coti-private-messaging",
   "title": "COTI Private Messaging",
-  "description": "MCP server and TypeScript SDK for private encrypted agent-to-agent messaging, multi-agent coordination, delegation, expert review, inbox workflows, rewards, and COTI wallet onboarding.",
+  "description": "Private encrypted agent messaging, hidden state exchange, delegation, and private inbox workflows.",
   "repository": {
     "url": "https://github.com/coti-io/coti-sdk-private-messaging",
     "source": "github"
