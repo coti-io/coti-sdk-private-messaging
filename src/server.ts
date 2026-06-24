@@ -165,6 +165,30 @@ export async function startMcpServer() {
   );
 
   server.registerTool(
+    "send_private_agent_message",
+    {
+      title: "Send Private Agent Message",
+      description: PRIVATE_MESSAGING_MCP_TOOLS.find(
+        (tool) => tool.name === "send_private_agent_message"
+      )?.description,
+      inputSchema: {
+        to: z.string().min(1),
+        plaintext: z.string(),
+        maxChunkBytes: z.number().int().positive().optional(),
+        gasLimit: z.union([z.string(), z.number().int().nonnegative()]).optional(),
+        gasBufferBps: z.number().int().nonnegative().optional()
+      }
+    },
+    async (args) => {
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "send_private_agent_message", args, {
+          starterGrantConfig
+        })
+      );
+    }
+  );
+
+  server.registerTool(
     "read_message",
     {
       title: "Read Message",
@@ -178,6 +202,27 @@ export async function startMcpServer() {
     async (args) => {
       return executeTool(() =>
         invokePrivateMessagingTool(client, "read_message", args, {
+          starterGrantConfig
+        })
+      );
+    }
+  );
+
+  server.registerTool(
+    "read_private_agent_message",
+    {
+      title: "Read Private Agent Message",
+      description: PRIVATE_MESSAGING_MCP_TOOLS.find(
+        (tool) => tool.name === "read_private_agent_message"
+      )?.description,
+      inputSchema: {
+        messageId: z.union([z.string(), z.number().int().nonnegative()]),
+        decrypt: z.boolean().optional()
+      }
+    },
+    async (args) => {
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "read_private_agent_message", args, {
           starterGrantConfig
         })
       );
@@ -209,6 +254,24 @@ export async function startMcpServer() {
   );
 
   server.registerTool(
+    "list_private_agent_inbox",
+    {
+      title: "List Private Agent Inbox",
+      description: PRIVATE_MESSAGING_MCP_TOOLS.find(
+        (tool) => tool.name === "list_private_agent_inbox"
+      )?.description,
+      inputSchema: listSchema
+    },
+    async (args) => {
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "list_private_agent_inbox", args, {
+          starterGrantConfig
+        })
+      );
+    }
+  );
+
+  server.registerTool(
     "list_sent",
     {
       title: "List Sent",
@@ -219,6 +282,24 @@ export async function startMcpServer() {
     async (args) => {
       return executeTool(() =>
         invokePrivateMessagingTool(client, "list_sent", args, {
+          starterGrantConfig
+        })
+      );
+    }
+  );
+
+  server.registerTool(
+    "list_sent_private_agent_messages",
+    {
+      title: "List Sent Private Agent Messages",
+      description: PRIVATE_MESSAGING_MCP_TOOLS.find(
+        (tool) => tool.name === "list_sent_private_agent_messages"
+      )?.description,
+      inputSchema: listSchema
+    },
+    async (args) => {
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "list_sent_private_agent_messages", args, {
           starterGrantConfig
         })
       );
@@ -256,6 +337,26 @@ export async function startMcpServer() {
     async (args) => {
       return executeTool(() =>
         invokePrivateMessagingTool(client, "get_account_stats", args, {
+          starterGrantConfig
+        })
+      );
+    }
+  );
+
+  server.registerTool(
+    "get_private_agent_inbox_stats",
+    {
+      title: "Get Private Agent Inbox Stats",
+      description: PRIVATE_MESSAGING_MCP_TOOLS.find(
+        (tool) => tool.name === "get_private_agent_inbox_stats"
+      )?.description,
+      inputSchema: {
+        account: z.string().min(1)
+      }
+    },
+    async (args) => {
+      return executeTool(() =>
+        invokePrivateMessagingTool(client, "get_private_agent_inbox_stats", args, {
           starterGrantConfig
         })
       );
